@@ -782,3 +782,88 @@ export const FRAGENKATALOG = [
     ],
   },
 ]
+
+// ─── Demo & Integration ──────────────────────────────────────────────────────
+
+export const DEMO_CHECKLIST = [
+  { id: 'd1', cat: 'zendesk', catLabel: 'Zendesk', title: 'Zendesk Trial-Account URL', desc: 'z.B. hfk-demo.zendesk.com — Kunde legt Trial-Account an (kostenlos, 14 Tage)', blocking: true },
+  { id: 'd2', cat: 'zendesk', catLabel: 'Zendesk', title: 'Admin-Login (E-Mail + Passwort)', desc: 'Zugangsdaten für den Demo-Zendesk-Account zur Konfiguration', blocking: true },
+  { id: 'd3', cat: 'jtl-shop', catLabel: 'JTL Shop', title: 'JTL-Shop URL', desc: 'Live-Shop oder Staging-URL (z.B. shop.herrundfrauklein.de)', blocking: true },
+  { id: 'd4', cat: 'jtl-shop', catLabel: 'JTL Shop', title: 'JTL Shop REST API Token', desc: 'API-Token mit Lesezugriff auf Orders, Customers, Products — in JTL-Shop Backend erstellen', blocking: true },
+  { id: 'd5', cat: 'jtl-wawi', catLabel: 'JTL WAWI', title: 'WAWI Server-URL / IP-Adresse', desc: 'IP oder Hostname des Servers auf dem JTL WAWI läuft (lokal oder Cloud)', blocking: true },
+  { id: 'd6', cat: 'jtl-wawi', catLabel: 'JTL WAWI', title: 'WAWI REST API Port', desc: 'Standard: Port 8080 · Muss von außen (unserer IP) erreichbar sein · Firewall-Freigabe nötig', blocking: true },
+  { id: 'd7', cat: 'jtl-wawi', catLabel: 'JTL WAWI', title: 'WAWI API-Benutzer + API-Key', desc: 'Benutzername und API-Key aus JTL WAWI Benutzerverwaltung für REST-Connector', blocking: true },
+  { id: 'd8', cat: 'branding', catLabel: 'Branding', title: 'HFK Logo (PNG oder SVG)', desc: 'Mindestens 200px Breite · Für Zendesk Help Center und Widget-Design', blocking: false },
+  { id: 'd9', cat: 'branding', catLabel: 'Branding', title: 'Markenfarben (HEX-Codes)', desc: 'Primärfarbe + Akzentfarbe für Zendesk Theme (bereits bekannt: #5C7A6A)', blocking: false },
+  { id: 'd10', cat: 'email', catLabel: 'E-Mail / DNS', title: 'Support-E-Mail-Adresse', desc: 'z.B. support@herrundfrauklein.de — wird als Zendesk E-Mail-Kanal eingerichtet', blocking: true },
+  { id: 'd11', cat: 'email', catLabel: 'E-Mail / DNS', title: 'DNS-Zugang (All-inkl Login)', desc: 'Für CNAME, SPF, DKIM Einträge · Ohne DNS kein E-Mail-Kanal möglich', blocking: true },
+  { id: 'd12', cat: 'agents', catLabel: 'Team', title: 'Agentenliste (Name + E-Mail)', desc: 'Alle Support-Mitarbeiter die Zendesk-Zugang bekommen sollen', blocking: true },
+  { id: 'd13', cat: 'agents', catLabel: 'Team', title: 'Testdaten in JTL vorhanden', desc: 'Min. 5 Kunden + 10 Bestellungen in JTL für Demo-Zwecke · Damit Integration live gezeigt werden kann', blocking: false },
+]
+
+export const DEMO_MILESTONES = [
+  {
+    id: 'm1', phase: 1, phaseLabel: 'Phase 1',
+    title: 'Zendesk Trial aktivieren & Grundsetup',
+    dauer: '1–2 Tage',
+    typ: 'self',
+    beschreibung: 'Trial-Account auf zendesk.com erstellen (14 Tage kostenlos), Subdomain konfigurieren, Branding eintragen, erste Agenten anlegen.',
+    intern: null,
+  },
+  {
+    id: 'm2', phase: 1, phaseLabel: 'Phase 1',
+    title: 'Kundendaten + Zugangsdaten sammeln',
+    dauer: '2–5 Tage',
+    typ: 'third-party',
+    beschreibung: 'Zendesk Demo-URL, JTL API-Keys, WAWI-Zugangsdaten, Agentenliste und Branding vom Kunden einsammeln.',
+    intern: 'BLOCKIEREND — Realistisch 2–5 Werktage einplanen. Kunde muss IT-Abteilung oder JTL-Partner einbeziehen für API-Freischaltung. Immer freundlich nachfassen nach 24h ohne Rückmeldung.',
+  },
+  {
+    id: 'm3', phase: 2, phaseLabel: 'Phase 2',
+    title: 'JTL Shop REST API freischalten',
+    dauer: '1–3 Tage',
+    typ: 'third-party',
+    beschreibung: 'In JTL Shop Admin: REST API aktivieren, API-Token mit Leserechten erstellen (Orders, Customers, Products, Stock).',
+    intern: 'Kann Kunde selbst in JTL-Shop-Backend machen. Falls kein IT-Know-how: JTL-Partner oder JTL Support notwendig — JTL Ticket dauert 1–3 Werktage. Port 443 (HTTPS) muss offen sein.',
+  },
+  {
+    id: 'm4', phase: 2, phaseLabel: 'Phase 2',
+    title: 'JTL WAWI REST Connector einrichten',
+    dauer: '1–4 Tage',
+    typ: 'mixed',
+    beschreibung: 'WAWI REST API aktivieren, Zendesk-App aus JTL Marketplace installieren, Firewall-Port freigeben, API-Benutzer anlegen.',
+    intern: 'FIREWALLREGEL: Muss vom Kunden-IT freigegeben werden (Port 8080 oder custom). JTL Marketplace App ist kostenlos. Falls JTL-Partner involviert: +1–2 Tage Wartezeit. Häufiges Problem: WAWI läuft lokal ohne feste IP → VPN oder DynDNS nötig.',
+  },
+  {
+    id: 'm5', phase: 3, phaseLabel: 'Phase 3',
+    title: 'Zendesk konfigurieren (Gruppen, SLA, Trigger)',
+    dauer: '1 Tag',
+    typ: 'self',
+    beschreibung: 'Routing-Gruppen anlegen, SLA-Policies setzen, Trigger und Automationen konfigurieren, Makros erstellen.',
+    intern: null,
+  },
+  {
+    id: 'm6', phase: 3, phaseLabel: 'Phase 3',
+    title: 'Integration testen (JTL ↔ Zendesk)',
+    dauer: '0.5 Tage',
+    typ: 'self',
+    beschreibung: 'API-Verbindung prüfen, Datenmapping testen, 3 Test-Tickets anlegen, Kundensuche über JTL-Kundendaten verifizieren.',
+    intern: null,
+  },
+  {
+    id: 'm7', phase: 3, phaseLabel: 'Phase 3',
+    title: 'DNS & E-Mail Setup',
+    dauer: '1–2 Tage',
+    typ: 'mixed',
+    beschreibung: 'CNAME, SPF, DKIM bei All-inkl eintragen — E-Mail-Kanal in Zendesk aktivieren und testen.',
+    intern: 'DNS-Propagation: normalerweise <1h, maximal 48h. Ohne All-inkl-Zugang ist das komplett blockiert. Frühzeitig Zugangsdaten anfordern! DKIM und SPF müssen gesetzt sein damit E-Mails nicht als SPAM markiert werden.',
+  },
+  {
+    id: 'm8', phase: 4, phaseLabel: 'Phase 4',
+    title: 'Demo-Präsentation beim Kunden',
+    dauer: '90 Min.',
+    typ: 'self',
+    beschreibung: 'Live-Demo mit echten JTL-Daten: Ticket anlegen via E-Mail, Kundensuche, Bestellstatus aus WAWI abrufen, Routing zeigen.',
+    intern: null,
+  },
+]

@@ -10,6 +10,7 @@ import CustomerPage from './pages/CustomerPage'
 import FAQPage from './pages/FAQPage'
 import InternPage from './pages/InternPage'
 import FragenPage from './pages/FragenPage'
+import DemoPage from './pages/DemoPage'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="fragen" element={<FragenPage />} />
           <Route path="faq" element={<FAQPage />} />
           <Route path="intern" element={<InternPage />} />
+          <Route path="demo" element={<DemoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

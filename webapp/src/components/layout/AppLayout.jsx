@@ -14,6 +14,7 @@ const TITLE_KEYS = {
   '/fragen': 'title.questions',
   '/faq': 'title.faq',
   '/intern': 'title.intern',
+  '/demo':   'title.demo',
 }
 
 export default function AppLayout() {

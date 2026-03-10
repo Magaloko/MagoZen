@@ -13,6 +13,7 @@ const NAV = [
   { to: '/fragen', key: 'nav.questions', icon: '≡' },
   { to: '/faq', key: 'nav.faq', icon: '?' },
   { to: '/intern', key: 'nav.intern', icon: '⊙' },
+  { to: '/demo', key: 'nav.demo', icon: '▷' },
 ]
 
 export default function Sidebar({ isOpen, onClose }) {
