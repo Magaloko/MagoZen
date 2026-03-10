@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HFK Fragenkatalog — Dadakaev Labs</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Mulish:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1A1D20; --ink-m:#2E3338; --muted:#6B7280; --muted-l:#9CA3AF;
+  --bg:#F7F8F6; --white:#FFFFFF; --warm:#EDE8E0; --warm-l:#F5F2ED;
+  --sage:#4A7060; --sage-l:#E8F2EE; --sage-m:#B5D4C8;
+  --amber:#C47C20; --amber-l:#FEF3DC; --amber-m:#F6D99A;
+  --blue:#2563A8; --blue-l:#EEF4FF; --blue-m:#BFDBFE;
+  --red:#C0392B; --red-l:#FEF2F0;
+  --r:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Mulish',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.7}
+
+/* ── HEADER ── */
+header{background:var(--ink);color:var(--white);padding:56px 64px 48px;position:relative;overflow:hidden}
+header::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 80% at 90% -10%,rgba(74,112,96,.35) 0%,transparent 55%),
+  radial-gradient(ellipse 40% 60% at 0% 100%,rgba(74,112,96,.15) 0%,transparent 50%);pointer-events:none}
+.h-inner{max-width:960px;margin:0 auto;position:relative;z-index:1}
+.h-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
+.h-logo{font-family:'Playfair Display',serif;font-size:17px;letter-spacing:.03em}
+.h-logo span{color:var(--sage-m)}
+.h-meta{text-align:right;font-family:'DM Mono',monospace;font-size:10.5px;color:rgba(255,255,255,.3);line-height:1.9}
+.h-eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage-m);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.h-eyebrow::before{content:'';width:32px;height:1px;background:var(--sage-m)}
+h1{font-family:'Playfair Display',serif;font-size:clamp(32px,4.5vw,54px);font-weight:700;line-height:1.06;margin-bottom:16px}
+h1 em{font-style:italic;color:var(--sage-m)}
+.h-sub{font-size:16px;color:rgba(255,255,255,.5);max-width:520px;font-weight:300;line-height:1.65;margin-bottom:36px}
+.h-legend{display:flex;flex-wrap:wrap;gap:12px}
+.leg{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.dot-must{background:#C0392B} .dot-should{background:#C47C20} .dot-can{background:#2563A8}
+.leg-label{color:rgba(255,255,255,.55)}
+
+/* ── MAIN ── */
+.main{max-width:960px;margin:0 auto;padding:56px 48px}
+
+/* ── SECTION HEADERS ── */
+.sec{margin-bottom:56px}
+.sec-title-row{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.sec-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.icon-tech{background:var(--sage-l)} .icon-ops{background:var(--amber-l)} .icon-biz{background:var(--blue-l)} .icon-future{background:#F3E8FF}
+.sec-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.label-tech{color:var(--sage)} .label-ops{color:var(--amber)} .label-biz{color:var(--blue)} .label-future{color:#7C3AED}
+h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700}
+.div{border:none;border-top:1px solid var(--warm);margin-bottom:28px}
+
+/* ── QUESTION CARDS ── */
+.q-list{display:flex;flex-direction:column;gap:10px}
+.q{background:var(--white);border:1px solid var(--warm);border-radius:var(--r);overflow:hidden;display:flex;transition:box-shadow .15s}
+.q:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.q-prio{width:6px;flex-shrink:0}
+.prio-must{background:var(--red)} .prio-should{background:var(--amber)} .prio-can{background:var(--blue)}
+.q-body{padding:14px 20px 14px 18px;flex:1;display:flex;gap:16px;align-items:flex-start}
+.q-badge{flex-shrink:0;margin-top:3px}
+.badge{padding:3px 9px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;white-space:nowrap}
+.b-must{background:var(--red-l);color:var(--red)} .b-should{background:var(--amber-l);color:var(--amber)} .b-can{background:var(--blue-l);color:var(--blue)}
+.q-content{flex:1}
+.q-text{font-weight:600;font-size:14px;color:var(--ink);line-height:1.45;margin-bottom:5px}
+.q-why{font-size:12.5px;color:var(--muted);line-height:1.55}
+.q-tip{font-size:11.5px;font-family:'DM Mono',monospace;color:var(--sage);margin-top:6px;padding:5px 10px;background:var(--sage-l);border-radius:4px;line-height:1.5}
+.q-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted-l);white-space:nowrap;padding-top:4px}
+
+/* ── SUMMARY BOX ── */
+.summary{background:var(--ink);color:var(--white);border-radius:12px;padding:36px 40px;margin-bottom:48px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.sum-item{text-align:center}
+.sum-num{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;line-height:1}
+.sum-must .sum-num{color:#FF7A6E} .sum-should .sum-num{color:#FBBF24} .sum-can .sum-num{color:#60A5FA}
+.sum-label{font-size:12px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;font-family:'DM Mono',monospace}
+.sum-desc{font-size:12px;color:rgba(255,255,255,.3);margin-top:4px;line-height:1.4}
+
+/* ── PRINT HINT ── */
+.print-hint{background:var(--sage-l);border:1px solid var(--sage-m);border-radius:var(--r);padding:14px 20px;font-size:13px;color:var(--sage);margin-bottom:40px;display:flex;gap:10px;align-items:center}
+.print-hint::before{content:'📋';font-size:16px;flex-shrink:0}
+
+footer{background:var(--ink);color:rgba(255,255,255,.25);text-align:center;padding:28px;font-size:11.5px;font-family:'DM Mono',monospace;line-height:1.9}
+
+@media print{
+  header{padding:32px} .main{padding:24px 32px}
+  .q{break-inside:avoid} .sec{break-inside:avoid}
+  .print-hint{display:none}
+  footer{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-inner">
+    <div class="h-top">
+      <div class="h-logo">Dadakaev <span>Labs</span></div>
+      <div class="h-meta">Projekt: HFK Zendesk Setup<br>Intern · März 2025<br>Vor dem Erstgespräch ausfüllen</div>
+    </div>
+    <div class="h-eyebrow">HFK Fragenkatalog</div>
+    <h1>Was ich Herr &amp; Frau<br>Klein <em>fragen muss,</em><br>kann &amp; sollte.</h1>
+    <p class="h-sub">Strukturierter Informations-Katalog für das Erstgespräch und die Projektdurchführung. Nach Priorität sortiert.</p>
+    <div class="h-legend">
+      <div class="leg"><div class="leg-dot dot-must"></div><div class="leg-label"><strong style="color:#FF7A6E">MUSS</strong> — Ohne diese Info kein Projektstart</div></div>
+      <div class="leg"><div class="leg-dot dot-should"></div><div class="leg-label"><strong style="color:#FBBF24">SOLLTE</strong> — Wichtig für Qualität, bald klären</div></div>
+      <div class="leg"><div class="leg-dot dot-can"></div><div class="leg-label"><strong style="color:#60A5FA">KANN</strong> — Nützlich, aber optional oder später</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="print-hint">Tipp: Diese Seite kann gedruckt oder als PDF gespeichert werden — ideal als Gesprächs-Checkliste vor dem Meeting.</div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="sum-item sum-must"><div class="sum-num">7</div><div class="sum-label">MUSS</div><div class="sum-desc">Blockieren Projektstart oder Phase</div></div>
+    <div class="sum-item sum-should"><div class="sum-num">9</div><div class="sum-label">SOLLTE</div><div class="sum-desc">Qualität &amp; Vollständigkeit</div></div>
+    <div class="sum-item sum-can"><div class="sum-num">8</div><div class="sum-label">KANN</div><div class="sum-desc">Upselling &amp; Zukunft</div></div>
+  </div>
+
+  <!-- SEKTION 1: TECHNISCH -->
+  <div class="sec">
+    <div class="sec-title-row">
+      <div class="sec-icon icon-tech">🛠</div>
+      <div>
+        <div class="sec-label label-tech">Kategorie 1</div>
+        <h2>Technische Infrastruktur</h2>
+      </div>
+    </div>
+    <hr class="div">
+    <div class="q-list">
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Wie lautet Ihr All-inkl Benutzername / Login für das DNS-Panel?</div>
+            <div class="q-why">Für DNS-Records (SPF + DKIM) benötigt. Phase 2 ist ohne diesen Zugang nicht möglich. Kurzzugang reicht — 10 Minuten Arbeit, danach sofort sperren/ändern.</div>
+            <div class="q-tip">// Kommunizieren: "Ich trage 3 Einträge ein und benötige den Zugang maximal 30 Minuten."</div>
+          </div>
+          <div class="q-num">T-01</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Haben Sie Zugang zum JTL WAWI Backend? Wer ist der WAWI-Administrator?</div>
+            <div class="q-why">Ich lege selbst den API-Benutzer in WAWI 1.9.4 an. Dafür brauche ich entweder Admin-Zugang oder muss jemanden bei HFK durch den Prozess führen.</div>
+            <div class="q-tip">// Wenn kein eigener Zugang: Wer beim Kunden hat Admin-Rechte in WAWI? 30 Min. gemeinsam via TeamViewer/Zoom.</div>
+          </div>
+          <div class="q-num">T-02</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Ist das JTL Shop REST API-Plugin bereits aktiviert? Läuft HTTPS auf dem Shop?</div>
+            <div class="q-why">REST API Endpoint (herrundfrauklein.com/api/v1) muss erreichbar und SSL-gesichert sein. Falls nicht aktiviert: brauche ich Shop-Admin-Zugang oder Anleitung an HFK-IT.</div>
+          </div>
+          <div class="q-num">T-03</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es eine separate IT-Person oder betreut jemand intern JTL + den Shop?</div>
+            <div class="q-why">Bei technischen Rückfragen (API-Aktivierung, WAWI-Zugang) ist es wichtig zu wissen ob ich direkt mit der GF spreche oder es einen IT-Ansprechpartner gibt.</div>
+          </div>
+          <div class="q-num">T-04</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Welche E-Mail-Clients nutzen Ihre Mitarbeiter heute (Outlook, Gmail, Apple Mail)?</div>
+            <div class="q-why">Bestimmt ob Weiterleitungsregeln aus altem System nötig sind und wie der Übergang von bisherigen Mails zu Zendesk kommuniziert werden soll.</div>
+          </div>
+          <div class="q-num">T-05</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es weitere E-Mail-Adressen außer service@ (z.B. info@, returns@)?</div>
+            <div class="q-why">Falls ja, können diese als sekundäre Support-Adressen in Zendesk eingebunden werden. Nicht zwingend, aber ein potenzieller Quick-Win.</div>
+          </div>
+          <div class="q-num">T-06</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Nutzen Sie einen separaten Retourenmanager (z.B. Returnbird, Narvar) oder alles über JTL?</div>
+            <div class="q-why">Wenn externes Retouren-Tool im Einsatz: evtl. Webhook-Integration oder Link im Makro notwendig statt direktem JTL-Status.</div>
+          </div>
+          <div class="q-num">T-07</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SEKTION 2: OPERATIONS & SUPPORT -->
+  <div class="sec">
+    <div class="sec-title-row">
+      <div class="sec-icon icon-ops">📬</div>
+      <div>
+        <div class="sec-label label-ops">Kategorie 2</div>
+        <h2>Support-Betrieb &amp; Team</h2>
+      </div>
+    </div>
+    <hr class="div">
+    <div class="q-list">
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Was sind Ihre 5 häufigsten Kundenanfragen? (Liste reicht, keine Details nötig)</div>
+            <div class="q-why">Direkte Auswirkung auf Makros (Phase 4) und Help Center Artikel (Phase 5). Ohne diese Liste entstehen nur generische Vorlagen statt HFK-spezifischer Schnellantworten.</div>
+            <div class="q-tip">// Beispiel-Format: "1. Wo ist meine Bestellung? 2. Wie retourniere ich? 3. Tonie funktioniert nicht..." — fertig.</div>
+          </div>
+          <div class="q-num">O-01</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Wer sind die 6 Support-Agenten? Namen + E-Mail-Adressen + welche Produktgruppe?</div>
+            <div class="q-why">Für Zendesk-Account-Erstellung, Gruppen-Zuweisung und Routing-Konfiguration. Ideal auch: wer ist der Zendesk-Admin (mein Ansprechpartner für Zugangsdaten)?</div>
+          </div>
+          <div class="q-num">O-02</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Welche genauen Geschäftszeiten hat Ihr Support-Team? Gibt es Abweichungen von Mo–Fr 09–17?</div>
+            <div class="q-why">Direkte Auswirkung auf SLA-Berechnung (nur Businesshours zählen) und den Außerhalb-Geschäftszeiten-Makro (M-06). Falsch konfiguriert = falsche SLA-Warnungen.</div>
+          </div>
+          <div class="q-num">O-03</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es aktuell offene Anfragen / E-Mails die beim Go-Live migriert werden sollen?</div>
+            <div class="q-why">Falls ja: Migration alter E-Mails als offene Tickets besprechen. Wenn nicht gewünscht: sauberer Cut-Off-Datum definieren ab dem Zendesk alle neuen Anfragen empfängt.</div>
+          </div>
+          <div class="q-num">O-04</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es saisonale Spitzen (Weihnachten, Black Friday, Schulanfang)? Wann ist die Hochsaison?</div>
+            <div class="q-why">Wichtig für Zeitplanung des Go-Live. Nicht in Hochsaison live gehen. Und: CSAT-Automation und SLA-Puffer sollten in Hochsaison angepasst werden.</div>
+            <div class="q-tip">// Empfehlung: Go-Live mindestens 4 Wochen vor Hochsaison abschließen.</div>
+          </div>
+          <div class="q-num">O-05</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Wie hoch ist der Anteil an deutschen vs. österreichischen Kunden? Gibt es Schweiz (CH)?</div>
+            <div class="q-why">Beeinflusst Makro-Texte (AT vs. DE Anrede), Retourenadressen, Versandhinweise und evtl. Mehrwertsteuer-Kommunikation in Templates.</div>
+          </div>
+          <div class="q-num">O-06</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es bereits Muster-E-Mails oder Textvorlagen die Ihr Team heute nutzt?</div>
+            <div class="q-why">Goldgrube für Makro-Erstellung. Wenn HFK bereits gute Antworten hat, übernehme ich diese — das spart Zeit und Makros klingen authentisch nach HFK-Stimme.</div>
+            <div class="q-tip">// Bitte: 2–3 typische Antwort-E-Mails als Beispiel zusenden.</div>
+          </div>
+          <div class="q-num">O-07</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es besondere Situationen die Eskalationen erfordern? (z.B. Beschädigungen, Beschwerden über Lieferanten)</div>
+            <div class="q-why">Für eine optionale Eskalations-Routing-Regel oder einen "Dringend"-Trigger. Nicht zwingend für Phase 1, aber gut zu wissen für Phase 4.</div>
+          </div>
+          <div class="q-num">O-08</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SEKTION 3: BUSINESS & BRAND -->
+  <div class="sec">
+    <div class="sec-title-row">
+      <div class="sec-icon icon-biz">🏷</div>
+      <div>
+        <div class="sec-label label-biz">Kategorie 3</div>
+        <h2>Marke, Inhalte &amp; Kommunikation</h2>
+      </div>
+    </div>
+    <hr class="div">
+    <div class="q-list">
+
+      <div class="q">
+        <div class="q-prio prio-must"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-must">MUSS</span></div>
+          <div class="q-content">
+            <div class="q-text">Können Sie mir Ihr Logo als PNG oder SVG-Datei zusenden? (Ideal: Weiß auf transparent)</div>
+            <div class="q-why">Für E-Mail-Template-Branding in Zendesk. Ohne Logo-Datei kann kein professionelles HFK-Template erstellt werden — Platzhalter sieht unprofessionell aus.</div>
+          </div>
+          <div class="q-num">B-01</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Haben Sie eine Retourenrichtlinie? Wie lange ist die Rückgabefrist?</div>
+            <div class="q-why">Zentral für Makro M-02 (Retoure einleiten) und den Help Center Artikel "Retouren &amp; Rückgaben". Falsche Informationen hier sind rechtlich kritisch.</div>
+            <div class="q-tip">// AT: Gesetzliches Minimum 14 Tage · Viele Shops bieten 30 Tage. Was bietet HFK?</div>
+          </div>
+          <div class="q-num">B-02</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Welche Versanddienstleister nutzen Sie? (DPD, DHL, GLS, Österreich Post?) Gibt es einen für Möbel/Sperrgut?</div>
+            <div class="q-why">Für Makro M-01 (Versandbestätigung) und den Tracking-Link. DHL-Links sehen anders aus als DPD-Links. Möbel haben oft eigene Speditionen.</div>
+          </div>
+          <div class="q-num">B-03</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es eine bevorzugte Ansprache für Kundenkommunikation? (Sie/Du? Förmlich oder familiär?)</div>
+            <div class="q-why">Alle Makros, E-Mail-Templates und Help Center Artikel müssen in derselben Stimme geschrieben sein wie HFK sonst kommuniziert. Tone of Voice ist Markenkern.</div>
+          </div>
+          <div class="q-num">B-04</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es bereits eine FAQ-Seite oder Hilfethemen auf der Website?</div>
+            <div class="q-why">Falls ja, kann ich diese als Basis für die 10 Help Center Artikel übernehmen statt von Null anzufangen. Spart Zeit und ist konsistent mit der Website.</div>
+          </div>
+          <div class="q-num">B-05</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Haben Sie eine Kundenzufriedenheitsumfrage (CSAT) bereits getestet oder Erfahrung damit?</div>
+            <div class="q-why">Ich aktiviere CSAT automatisch nach Phase 4. Gut zu wissen ob HFK schon damit vertraut ist — dann kommuniziere ich den Rollout entsprechend.</div>
+          </div>
+          <div class="q-num">B-06</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SEKTION 4: ZUKUNFT & UPSELLING -->
+  <div class="sec">
+    <div class="sec-title-row">
+      <div class="sec-icon icon-future">🚀</div>
+      <div>
+        <div class="sec-label label-future">Kategorie 4</div>
+        <h2>Zukunft &amp; Erweiterungen</h2>
+      </div>
+    </div>
+    <hr class="div">
+    <div class="q-list">
+
+      <div class="q">
+        <div class="q-prio prio-should"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-should">SOLLTE</span></div>
+          <div class="q-content">
+            <div class="q-text">Wann planen Sie WhatsApp als Support-Kanal einzuführen? Gibt es bereits eine WhatsApp Business Nummer?</div>
+            <div class="q-why">Ich bereite die Struktur in Phase 1 vor. Je konkreter die Planung, desto besser die Vorbereitung. Meta Business Account wird vorab benötigt wenn WhatsApp absehbar kommt.</div>
+            <div class="q-tip">// Tipp für HFK: WhatsApp Business API über Meta einrichten dauert 2–4 Wochen. Jetzt beantragen.</div>
+          </div>
+          <div class="q-num">F-01</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Ist ein Live-Chat auf der Website geplant? Wenn ja, welcher Zeitrahmen?</div>
+            <div class="q-why">Zendesk Web Widget (Chat) ist in Suite Growth inklusive. Wenn HFK das wünscht, kann ich es im gleichen Projekt einrichten — kein separater Auftrag nötig.</div>
+          </div>
+          <div class="q-num">F-02</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Planen Sie in den nächsten 12 Monaten weitere Standorte, einen zweiten Shop oder Marktplatzerweiterung (Amazon, Zalando)?</div>
+            <div class="q-why">Falls Marktplätze dazukommen: eigene E-Mail-Kanäle und Routing-Gruppen in Zendesk nötig. Jetzt wissen = bessere Architektur von Anfang an.</div>
+          </div>
+          <div class="q-num">F-03</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Haben Sie Interesse an monatlichen Performance-Reports (Volumen, SLA-Compliance, CSAT-Werte)?</div>
+            <div class="q-why">Zendesk Explore (in Suite Growth inklusive) erlaubt detaillierte Dashboards. Wenn gewünscht: ich richte ein Custom Dashboard ein — guter Einstieg für einen Betreuungsvertrag.</div>
+            <div class="q-tip">// Upselling-Ansatz für Adnan: "Monatlicher Report + Optimierungen für €X/Mo."</div>
+          </div>
+          <div class="q-num">F-04</div>
+        </div>
+      </div>
+
+      <div class="q">
+        <div class="q-prio prio-can"></div>
+        <div class="q-body">
+          <div class="q-badge"><span class="badge b-can">KANN</span></div>
+          <div class="q-content">
+            <div class="q-text">Gibt es andere Tools die mit Zendesk verbunden werden sollten? (CRM, Newsletter, Buchhaltung?)</div>
+            <div class="q-why">Zendesk hat 1.000+ Marketplace-Integrationen. Wenn HFK z.B. Mailchimp, HubSpot oder Pipedrive nutzt: einfache Verbindung möglich. Kann den Wert erheblich steigern.</div>
+          </div>
+          <div class="q-num">F-05</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Dadakaev Labs · HFK Fragenkatalog · Intern · März 2025<br>
+  24 Fragen total: 7× MUSS · 9× SOLLTE · 8× KANN
+</footer>
+
+</body>
+</html>

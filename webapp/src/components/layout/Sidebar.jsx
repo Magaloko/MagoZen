@@ -8,6 +8,7 @@ const NAV = [
   { to: '/dns', icon: '◎', label: 'DNS & E-Mail' },
   { to: '/risiken', icon: '△', label: 'Risiken' },
   { to: '/kunde', icon: '◇', label: 'Kundendaten' },
+  { to: '/fragen', icon: '≡', label: 'Fragenkatalog' },
   { to: '/faq', icon: '?', label: 'Q&A Vorbereitung' },
   { to: '/intern', icon: '⊙', label: 'Intern (Kalkulation)' },
 ]
