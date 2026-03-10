@@ -1,58 +1,72 @@
+import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import { useLanguage } from '../../context/LanguageContext'
 
-const PAGE_TITLES = {
-  '/': 'Dashboard',
-  '/phasen': 'Phasen & Aufgaben',
-  '/checkliste': 'Go-Live Checkliste',
-  '/makros': 'Makros (Antwortvorlagen)',
-  '/dns': 'DNS & E-Mail Setup',
-  '/risiken': 'Risiken & Besonderheiten',
-  '/kunde': 'Kundendaten HFK',
-  '/faq': 'Q&A Vorbereitung',
-  '/intern': 'Intern – Kalkulation',
+const TITLE_KEYS = {
+  '/': 'title.dashboard',
+  '/phasen': 'title.phases',
+  '/checkliste': 'title.checklist',
+  '/makros': 'title.macros',
+  '/dns': 'title.dns',
+  '/risiken': 'title.risks',
+  '/kunde': 'title.customer',
+  '/fragen': 'title.questions',
+  '/faq': 'title.faq',
+  '/intern': 'title.intern',
 }
 
 export default function AppLayout() {
   const { pathname } = useLocation()
-  const title = PAGE_TITLES[pathname] || 'HFK Dashboard'
+  const { t } = useLanguage()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-      <div style={{ flex: 1, marginLeft: 'var(--sidebar-w)', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        {/* Topbar */}
+      {/* Mobile backdrop */}
+      <div
+        className={`sidebar-overlay${sidebarOpen ? ' open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div
+        className="app-content"
+        style={{ flex: 1, marginLeft: 'var(--sidebar-w)', display: 'flex', flexDirection: 'column', minHeight: '100vh', minWidth: 0 }}
+      >
         <header
+          className="app-topbar"
           style={{
             height: 'var(--topbar-h)',
             display: 'flex',
             alignItems: 'center',
-            padding: '0 28px',
+            padding: '0 24px',
             borderBottom: '1px solid var(--border)',
             background: 'var(--ink)',
             position: 'sticky',
             top: 0,
             zIndex: 5,
-            gap: 14,
+            gap: 12,
           }}
         >
-          <h1 style={{ fontSize: 15, fontWeight: 600, color: 'var(--white)' }}>{title}</h1>
+          <button className="hamburger" onClick={() => setSidebarOpen(true)} aria-label="Menu">
+            <span /><span /><span />
+          </button>
+
+          <h1 style={{ fontSize: 15, fontWeight: 600, color: 'var(--white)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+            {t(TITLE_KEYS[pathname] || 'title.dashboard')}
+          </h1>
           <div style={{ flex: 1 }} />
           <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              color: 'var(--muted)',
-              padding: '4px 12px',
-              border: '1px solid var(--border)',
-              borderRadius: 4,
-            }}
+            className="topbar-badge"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', padding: '4px 12px', border: '1px solid var(--border)', borderRadius: 4, whiteSpace: 'nowrap', flexShrink: 0 }}
           >
-            Projekt: HFK Zendesk+JTL+Copilot
+            {t('topbar.project')}
           </div>
         </header>
-        {/* Content */}
-        <main style={{ flex: 1, padding: '28px', overflowY: 'auto' }} className="fade-in">
+
+        <main className="app-main fade-in" style={{ flex: 1, padding: '24px', overflowY: 'auto', minWidth: 0 }}>
           <Outlet />
         </main>
       </div>

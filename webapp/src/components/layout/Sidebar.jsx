@@ -1,23 +1,28 @@
 import { NavLink } from 'react-router-dom'
+import { useLanguage } from '../../context/LanguageContext'
+import { LANGUAGES } from '../../i18n/translations'
 
 const NAV = [
-  { to: '/', icon: '⊞', label: 'Dashboard' },
-  { to: '/phasen', icon: '◈', label: 'Phasen' },
-  { to: '/checkliste', icon: '✓', label: 'Go-Live Checkliste' },
-  { to: '/makros', icon: '⚡', label: 'Makros' },
-  { to: '/dns', icon: '◎', label: 'DNS & E-Mail' },
-  { to: '/risiken', icon: '△', label: 'Risiken' },
-  { to: '/kunde', icon: '◇', label: 'Kundendaten' },
-  { to: '/fragen', icon: '≡', label: 'Fragenkatalog' },
-  { to: '/faq', icon: '?', label: 'Q&A Vorbereitung' },
-  { to: '/intern', icon: '⊙', label: 'Intern (Kalkulation)' },
+  { to: '/', key: 'nav.dashboard', icon: '⊞' },
+  { to: '/phasen', key: 'nav.phases', icon: '◈' },
+  { to: '/checkliste', key: 'nav.checklist', icon: '✓' },
+  { to: '/makros', key: 'nav.macros', icon: '⚡' },
+  { to: '/dns', key: 'nav.dns', icon: '◎' },
+  { to: '/risiken', key: 'nav.risks', icon: '△' },
+  { to: '/kunde', key: 'nav.customer', icon: '◇' },
+  { to: '/fragen', key: 'nav.questions', icon: '≡' },
+  { to: '/faq', key: 'nav.faq', icon: '?' },
+  { to: '/intern', key: 'nav.intern', icon: '⊙' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
+  const { t, lang, switchLang } = useLanguage()
+
   return (
     <aside
+      className={`app-sidebar${isOpen ? ' sidebar-open' : ''}`}
       style={{
-        width: 'var(--sidebar-w)',
+        width: 'var(--sidebar-w, 240px)',
         background: 'var(--ink)',
         borderRight: '1px solid var(--border)',
         display: 'flex',
@@ -29,28 +34,40 @@ export default function Sidebar() {
         left: 0,
         overflowY: 'auto',
         zIndex: 10,
+        width: 240,
       }}
     >
-      {/* Logo */}
-      <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>
-          DADAKAEV_LABS
+      {/* Logo + close button */}
+      <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>
+            DADAKAEV_LABS
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>HFK // Zendesk Setup</div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>HFK // Zendesk Setup</div>
+        <button
+          className="sidebar-close-btn"
+          onClick={onClose}
+          aria-label="Close menu"
+          style={{ background: 'transparent', border: 'none', color: 'var(--muted-l)', fontSize: 22, cursor: 'pointer', lineHeight: 1, padding: '2px 4px', flexShrink: 0 }}
+        >
+          ×
+        </button>
       </div>
 
       {/* Nav */}
-      <nav style={{ padding: '12px 10px', flex: 1 }}>
-        {NAV.map(({ to, icon, label }) => (
+      <nav style={{ padding: '10px 8px', flex: 1 }}>
+        {NAV.map(({ to, key, icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
+            onClick={onClose}
             style={({ isActive }) => ({
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              padding: '8px 12px',
+              padding: '9px 12px',
               borderRadius: 'var(--r)',
               marginBottom: 2,
               fontSize: 13,
@@ -59,20 +76,51 @@ export default function Sidebar() {
               background: isActive ? 'var(--green-d)' : 'transparent',
               border: isActive ? '1px solid var(--green-b)' : '1px solid transparent',
               transition: 'all .15s',
+              minHeight: 40,
             })}
           >
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>
               {icon}
             </span>
-            {label}
+            {t(key)}
           </NavLink>
         ))}
       </nav>
 
+      {/* Language switcher */}
+      <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
+          Language
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {LANGUAGES.map(({ code, label }) => (
+            <button
+              key={code}
+              onClick={() => switchLang(code)}
+              style={{
+                flex: 1,
+                padding: '6px 4px',
+                borderRadius: 4,
+                border: lang === code ? '1px solid var(--green-b)' : '1px solid var(--border)',
+                background: lang === code ? 'var(--green-d)' : 'transparent',
+                color: lang === code ? 'var(--green)' : 'var(--muted-l)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                fontWeight: lang === code ? 700 : 400,
+                cursor: 'pointer',
+                transition: 'all .15s',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Footer */}
-      <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--muted)' }}>
-        <div style={{ fontFamily: 'var(--font-mono)' }}>v1.0 · März 2025</div>
-        <div>Intern · Vertraulich</div>
+      <div style={{ padding: '12px 16px', fontSize: 11, color: 'var(--muted)' }}>
+        <div style={{ fontFamily: 'var(--font-mono)' }}>{t('sidebar.footer.version')}</div>
+        <div>{t('sidebar.footer.confidential')}</div>
       </div>
     </aside>
   )
