@@ -1,0 +1,12 @@
+# Dependencies
+webapp/node_modules/
+webapp/dist/
+
+# Vertrauliche interne Dokumente
+02_Adnan_Partner.html
+03_Techniker_Masterplan.html
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.env

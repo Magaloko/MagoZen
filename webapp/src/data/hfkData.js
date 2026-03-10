@@ -1,0 +1,563 @@
+// ─── HFK Zendesk Projekt · Dadakaev Labs ───────────────────────────────────
+
+export const CUSTOMER = {
+  name: 'Herr & Frau Klein GmbH',
+  short: 'HFK',
+  url: 'herrundfrauklein.com',
+  email: 'service@herrundfrauklein.com',
+  zendeskSubdomain: 'herrundfrauklein.zendesk.com',
+  hoster: 'All-inkl',
+  markt: 'Österreich (AT) + DE',
+  timezone: 'Wien UTC+1/+2',
+  sortiment: 'Mode, Spielzeug, Möbel, Tonies, Kinderwagen, Deko',
+  volumen: '50–100 E-Mails/Tag',
+  agenten: 6,
+  aktuelleKanäle: 'Nur E-Mail',
+  jtlShop: '5.4.2',
+  jtlWawi: '1.9.4',
+  branding: {
+    primary: '#5C7A6A',
+    primaryLight: '#EBF2EE',
+    primaryMid: '#C8DDD3',
+    cream: '#F8F4EE',
+    warm: '#EDE5D8',
+    ink: '#1C1F1D',
+    gold: '#B8893A',
+  },
+}
+
+export const KPIS = [
+  { label: 'Honorar Techniker', value: '€2.880', sub: 'netto' },
+  { label: 'Stundenaufwand', value: '36h', sub: '~€80/h' },
+  { label: 'Phasen', value: '5+1', sub: 'inkl. Schulung' },
+  { label: 'Go-Live', value: '4 Wo.', sub: 'ab Projektstart' },
+  { label: 'Agenten', value: '6', sub: '4 Full + 2 Light' },
+  { label: 'Lizenz/Mo.', value: '€356', sub: 'optimiert' },
+]
+
+export const GRUPPEN = [
+  { name: 'Mode & Rückgaben', agents: ['Agent 1', 'Agent 2'] },
+  { name: 'Spielzeug & Tonies', agents: ['Agent 3', 'Agent 4'] },
+  { name: 'Möbel & Lieferung', agents: ['Agent 5'] },
+  { name: 'Allgemein', agents: ['Agent 6'] },
+  { name: 'WhatsApp (inaktiv)', agents: [], inactive: true },
+]
+
+export const DNS_RECORDS = [
+  {
+    type: 'TXT (SPF)',
+    host: '@',
+    value: 'v=spf1 include:mail.zendesk.com ~all',
+    note: 'Für E-Mail-Authentifizierung',
+  },
+  {
+    type: 'TXT (DKIM 1)',
+    host: 'zendesk1._domainkey',
+    value: '[Wert aus Zendesk Admin Center kopieren]',
+    note: 'Nach Zendesk-Account-Erstellung verfügbar',
+    pending: true,
+  },
+  {
+    type: 'TXT (DKIM 2)',
+    host: 'zendesk2._domainkey',
+    value: '[Wert aus Zendesk Admin Center kopieren]',
+    note: 'Nach Zendesk-Account-Erstellung verfügbar',
+    pending: true,
+  },
+]
+
+export const PHASES = [
+  {
+    id: 'phase1',
+    number: 'Phase 1',
+    title: 'Zendesk Account Setup & Grundkonfiguration',
+    hours: 8,
+    color: 'green',
+    honorar: 640,
+    tasks: [
+      {
+        id: 'p1t1',
+        title: 'Zendesk Account + Suite Growth',
+        detail: 'Subdomain: herrundfrauklein.zendesk.com · 4–6 Agenten-Lizenzen · Billing klären',
+      },
+      {
+        id: 'p1t2',
+        title: 'Branding: Cream/Sage Design',
+        detail: 'Logo Upload · #5C7A6A / #F8F4EE · E-Mail-Template HTML im HFK Design',
+      },
+      {
+        id: 'p1t3',
+        title: 'Sprache + Zeitzone + Geschäftszeiten',
+        detail: 'Deutsch · Wien UTC+1/+2 · Mo–Fr 09:00–17:00 · AT-Feiertage eintragen',
+      },
+      {
+        id: 'p1t4',
+        title: '5 Custom Ticket-Felder anlegen',
+        detail:
+          'Bestellnummer (Text) · Retourengrund (Dropdown) · Tracking-Nr. (Text) · Bestellwert (Decimal) · Möbel-Sperrgut (Checkbox)',
+      },
+      {
+        id: 'p1t5',
+        title: '4 Gruppen anlegen + WhatsApp-Gruppe vorbereiten',
+        detail:
+          'Mode & Rückgaben · Spielzeug & Tonies · Möbel & Lieferung · Allgemein · WhatsApp (inaktiv)',
+      },
+      {
+        id: 'p1t6',
+        title: '6 Agenten anlegen + Gruppen zuweisen',
+        detail: 'Rollen definieren · Light Agents für GF/Lager einrichten · Einladungen senden',
+      },
+    ],
+  },
+  {
+    id: 'phase2',
+    number: 'Phase 2',
+    title: 'E-Mail Kanal + DNS (All-inkl)',
+    hours: 4,
+    color: 'blue',
+    honorar: 0,
+    tasks: [
+      {
+        id: 'p2t1',
+        title: 'service@herrundfrauklein.com in Zendesk',
+        detail:
+          'Support-Adresse anlegen · Weiterleitung einrichten · Absender-Name: "Herr & Frau Klein Service"',
+      },
+      {
+        id: 'p2t2',
+        title: 'DNS-Records bei All-inkl eintragen',
+        detail: 'SPF + 2x DKIM · Propagation prüfen: dnschecker.org · Typisch unter 30 Min.',
+      },
+      {
+        id: 'p2t3',
+        title: 'E-Mail-Test vollständig',
+        detail: 'Senden + Empfangen + Ticket-Erstellung · Antwort aus Zendesk testen',
+      },
+      {
+        id: 'p2t4',
+        title: 'Eingangsbestätigung DE konfigurieren',
+        detail:
+          'Warmherziger Ton für Eltern-Zielgruppe · HFK Logo + Farben · "Wir antworten innerhalb von 8 Stunden"',
+      },
+    ],
+  },
+  {
+    id: 'phase3',
+    number: 'Phase 3',
+    title: 'JTL Shop 5.4.2 + WAWI 1.9.4 Integration',
+    hours: 10,
+    color: 'amber',
+    honorar: 800,
+    risk: 'Möbel-Webhook hat anderen Statuspfad in WAWI 1.9.4 — Zeitpuffer einplanen!',
+    tasks: [
+      {
+        id: 'p3t1',
+        title: 'API-Benutzer in WAWI 1.9.4 anlegen',
+        detail: 'Rechte: Bestellungen lesen + Kunden lesen + Artikel lesen · API-Key sichern',
+      },
+      {
+        id: 'p3t2',
+        title: 'REST API in JTL Shop 5.4.2 aktivieren',
+        detail:
+          'Plugin aktivieren · Endpoint: herrundfrauklein.com/api/v1 · SSL prüfen · Rate Limits prüfen',
+      },
+      {
+        id: 'p3t3',
+        title: 'Zendesk JTL App aus Marketplace installieren',
+        detail: 'Apps & Integrations → Marketplace → "JTL" suchen · API Key + Shop URL · Verbindungstest',
+      },
+      {
+        id: 'p3t4',
+        title: 'Datenmapping konfigurieren',
+        detail:
+          'Reihenfolge: Bestellnr. · Status · Artikel-Liste · Tracking · Zahlungsstatus · Möbel-Flag',
+      },
+      {
+        id: 'p3t5',
+        title: 'Webhook: WAWI → Zendesk (4 Events)',
+        detail:
+          'Bestellbestätigung · Versandt + Tracking · Möbelliefertermin bestätigt · Retoure eingegangen · SEPARATE Logik für Möbel!',
+      },
+      {
+        id: 'p3t6',
+        title: 'Integrationstest mit echten Bestellungen',
+        detail:
+          'Test 1: Normalbestellung · Test 2: Möbellieferung · Test 3: Retoure-Prozess · Alle Custom Fields prüfen',
+      },
+    ],
+  },
+  {
+    id: 'phase4',
+    number: 'Phase 4',
+    title: 'Automationen, SLA-Policies & Makros',
+    hours: 8,
+    color: 'green',
+    honorar: 640,
+    tasks: [
+      {
+        id: 'p4t1',
+        title: 'SLA-Policy: Standard (8h/48h)',
+        detail: 'Default · AT Geschäftszeiten Mo–Fr',
+      },
+      {
+        id: 'p4t2',
+        title: 'SLA-Policy: Dringend (1h/8h)',
+        detail: 'Priorität = Urgent · Manuell oder via Trigger',
+      },
+      {
+        id: 'p4t3',
+        title: 'SLA-Policy: Möbel & Sperrgut (24h/72h)',
+        detail: 'Custom Field: Möbel-Sperrgut = true als Bedingung',
+      },
+      {
+        id: 'p4t4',
+        title: 'Omnichannel Routing einrichten',
+        detail: 'Highest Spare Capacity · 4 Gruppen aktiv',
+      },
+      {
+        id: 'p4t5',
+        title: '6 Makros erstellen (M-01 bis M-06)',
+        detail: 'Versandbestätigung · Retoure · Möbelliefertermin · Größenberatung · Tonie defekt · Außerhalb GZ',
+      },
+      {
+        id: 'p4t6',
+        title: 'CSAT-Umfrage aktivieren',
+        detail: 'Kundenzufriedenheitsumfrage nach Ticket-Lösung',
+      },
+      {
+        id: 'p4t7',
+        title: 'Views + Filter konfigurieren',
+        detail: 'Ansichten für jede Gruppe · Offene Tickets · Wartezeit-Ansicht',
+      },
+    ],
+  },
+  {
+    id: 'phase5',
+    number: 'Phase 5',
+    title: 'AI Copilot + Help Center',
+    hours: 6,
+    color: 'purple',
+    honorar: 480,
+    tasks: [
+      {
+        id: 'p5t1',
+        title: 'AI Copilot aktivieren und konfigurieren',
+        detail: 'Suggestions ON · Summarize ON · Expand ON · Tone Adjust ON · Auto-Answer OFF',
+      },
+      {
+        id: 'p5t2',
+        title: 'Help Center aufsetzen (6 Kategorien)',
+        detail: 'Versand & Lieferung · Retouren · Möbel & Sperrgut · Tonies · Mode & Größen · Zahlungen',
+      },
+      {
+        id: 'p5t3',
+        title: '10 Help Center Artikel schreiben',
+        detail: 'Nach Erhalt der Top-5 Anfragen von HFK — AUSSTEHEND',
+        pending: true,
+      },
+      {
+        id: 'p5t4',
+        title: 'Copilot mit Help Center verbinden',
+        detail: 'Help Center als Wissensquelle für KI-Vorschläge konfigurieren',
+      },
+      {
+        id: 'p5t5',
+        title: 'Copilot testen',
+        detail: 'Test-Tickets erstellen · Qualität der KI-Vorschläge prüfen',
+      },
+    ],
+  },
+  {
+    id: 'phase6',
+    number: 'Schulung',
+    title: 'Schulung, Dokumentation & 30 Tage Nachbetreuung',
+    hours: 4,
+    color: 'green',
+    honorar: 320,
+    tasks: [
+      {
+        id: 'p6t1',
+        title: 'Remote-Schulung 90 Min. vorbereiten',
+        detail: 'Agenda · Screensharing · Alle 6 Agenten gleichzeitig',
+      },
+      {
+        id: 'p6t2',
+        title: 'Kurzanleitung PDF erstellen',
+        detail: 'Ticket bearbeiten · Makros nutzen · JTL-Daten lesen · Routing verstehen',
+      },
+      {
+        id: 'p6t3',
+        title: 'Remote-Schulung durchführen',
+        detail: '90 Min. mit allen 6 Agenten · Fragen beantworten',
+      },
+      {
+        id: 'p6t4',
+        title: '30 Tage Nachbetreuung',
+        detail: 'Verfügbar für Rückfragen · Anpassungen · Go-Live-Monitoring',
+      },
+    ],
+  },
+]
+
+export const MACROS = [
+  {
+    id: 'M-01',
+    name: 'Versandbestätigung',
+    type: 'JTL',
+    typeColor: 'green',
+    description: 'Tracking-Link aus JTL · "{ticket.cf_tracking_nr}" · Lieferfenster erwähnen · Freundlicher Ton',
+    template: `Liebe/r {{ticket.requester.first_name}},
+
+Ihre Bestellung ist auf dem Weg zu Ihnen!
+
+📦 Ihre Sendungsnummer: {{ticket.cf_tracking_nr}}
+📅 Voraussichtliche Lieferung: 2–4 Werktage
+
+Über den Tracking-Link können Sie Ihre Bestellung jederzeit verfolgen.
+
+Wir wünschen viel Freude mit Ihrem Einkauf!
+Mit freundlichen Grüßen
+Ihr Herr & Frau Klein Service-Team`,
+  },
+  {
+    id: 'M-02',
+    name: 'Retoure einleiten',
+    type: 'Manual',
+    typeColor: 'amber',
+    description: 'Retourenformular-Link · Bestellnr. aus JTL · AT/DE Rücksende-Adresse · 14-Tage-Frist',
+    template: `Liebe/r {{ticket.requester.first_name}},
+
+natürlich helfen wir Ihnen bei der Rücksendung.
+
+Ihre Bestellnummer: {{ticket.cf_bestellnummer}}
+
+So gehen Sie vor:
+1. Füllen Sie unser Retourenformular aus: [LINK]
+2. Drucken Sie das Rücksendeetikett aus
+3. Bitte senden Sie die Ware innerhalb von 14 Tagen zurück
+
+Rücksende-Adresse:
+Herr & Frau Klein GmbH
+[ADRESSE EINTRAGEN]
+
+Bei Fragen stehen wir jederzeit zur Verfügung.
+Ihr Herr & Frau Klein Service-Team`,
+  },
+  {
+    id: 'M-03',
+    name: 'Möbelliefertermin',
+    type: 'Webhook',
+    typeColor: 'amber',
+    description: 'Liefertermin aus JTL Webhook · Sperrgut-Hinweis · Annahme-Info · 24h SLA aktiv',
+    template: `Liebe/r {{ticket.requester.first_name}},
+
+Ihr Möbelstück ist in Kürze bei Ihnen!
+
+📅 Ihr Liefertermin: {{ticket.cf_liefertermin}}
+
+Wichtige Informationen zur Lieferung:
+• Bitte stellen Sie sicher, dass jemand für die Annahme anwesend ist
+• Bei Sperrgut ist ein Helfer zur Abnahme empfohlen
+• Bei Problemen am Liefertag: Bitte direkt an uns wenden
+
+Wir freuen uns, Ihnen schon bald Ihr neues Möbelstück liefern zu dürfen!
+Ihr Herr & Frau Klein Service-Team`,
+  },
+  {
+    id: 'M-04',
+    name: 'Größenberatung → Copilot',
+    type: 'AI',
+    typeColor: 'blue',
+    description: 'Copilot aus Help Center · Größentabellen für Mode · Link zur HFK Größenhilfe',
+    template: `Liebe/r {{ticket.requester.first_name}},
+
+gerne helfen wir Ihnen bei der Größenauswahl!
+
+[AI Copilot fügt hier automatisch den passenden Inhalt aus unserer Größentabelle ein]
+
+Unsere vollständige Größenhilfe finden Sie auch auf: herrundfrauklein.com/groessentabelle
+
+Falls Sie noch weitere Fragen haben, stehen wir gerne zur Verfügung!
+Ihr Herr & Frau Klein Service-Team`,
+  },
+  {
+    id: 'M-05',
+    name: 'Tonie defekt',
+    type: 'Manual',
+    typeColor: 'green',
+    description: 'Defekt-Check 3 Fragen · Tonies Support Link · Ersatzlieferung wenn im Garantiefenster',
+    template: `Liebe/r {{ticket.requester.first_name}},
+
+es tut uns sehr leid zu hören, dass Ihr Tonie nicht funktioniert!
+
+Um Ihnen schnell helfen zu können, bitte ich um folgende Informationen:
+1. Welches Modell ist Ihr Tonie? (Name/Farbe)
+2. Was genau passiert? (Kein Ton, keine Reaktion, blinkt seltsam...)
+3. Wann wurde der Tonie gekauft?
+
+Alternativ können Sie auch direkt den Tonies Kundendienst kontaktieren: support.tonies.com
+
+Sobald wir Ihre Antwort haben, finden wir gemeinsam eine Lösung!
+Ihr Herr & Frau Klein Service-Team`,
+  },
+  {
+    id: 'M-06',
+    name: 'Außerhalb Geschäftszeiten',
+    type: 'Auto',
+    typeColor: 'amber',
+    description: 'Automation: Mo–Fr <09:00 oder >17:00 · Wochenende · Nächster Werktag',
+    template: `Liebe/r {{ticket.requester.first_name}},
+
+vielen Dank für Ihre Nachricht!
+
+Unsere Servicezeiten sind Montag bis Freitag, 09:00–17:00 Uhr.
+
+Wir haben Ihre Anfrage erhalten und werden uns am nächsten Werktag bei Ihnen melden.
+
+Mit freundlichen Grüßen
+Ihr Herr & Frau Klein Service-Team`,
+  },
+]
+
+export const SLA_POLICIES = [
+  {
+    name: 'Standard',
+    firstResponse: '8h',
+    resolution: '48h',
+    condition: 'Default · AT Geschäftszeiten Mo–Fr',
+  },
+  {
+    name: 'Dringend',
+    firstResponse: '1h',
+    resolution: '8h',
+    condition: 'Priorität = Urgent · Manuell oder Trigger',
+  },
+  {
+    name: 'Möbel & Sperrgut',
+    firstResponse: '24h',
+    resolution: '72h',
+    condition: 'Custom Field: Möbel-Sperrgut = true',
+  },
+]
+
+export const COPILOT_SETTINGS = [
+  { feature: 'Auto-Answer', value: 'OFF', reason: 'Zu früh — erst nach 2 Monaten Betrieb evaluieren', active: false },
+  { feature: 'Copilot Suggestions', value: 'ON', reason: 'KI schlägt Antwort vor · Agent prüft + sendet', active: true },
+  { feature: 'Summarize', value: 'ON', reason: 'Lange Ticket-Historien zusammenfassen', active: true },
+  { feature: 'Expand', value: 'ON', reason: 'Kurze Notizen zu vollständiger Antwort ausbauen', active: true },
+  { feature: 'Tone Adjust', value: 'ON', reason: 'Formell/informell anpassen für AT-Kunden', active: true },
+  { feature: 'Help Center Quelle', value: 'ON', reason: 'Copilot nutzt eigene Wissensbasis', active: true },
+]
+
+export const RISKS = [
+  {
+    level: 'hoch',
+    title: 'Möbel-Webhook (WAWI 1.9.4)',
+    description:
+      'Möbellieferungen nutzen anderen Statuspfad in WAWI. Separate Webhook-Logik mit Artikel-Kategorie-Condition nötig. Zeitpuffer in Phase 3 einplanen (+2h).',
+  },
+  {
+    level: 'mittel',
+    title: 'Top-5 Anfragen ausstehend',
+    description:
+      'Makros (Phase 4) und Help Center (Phase 5) hängen davon ab. Spätestens zu Projektstart von HFK anfordern.',
+  },
+  {
+    level: 'mittel',
+    title: 'All-inkl Zugangsdaten',
+    description:
+      'Für DNS-Setup benötigt. 10 Minuten Arbeit. Danach Zugang sofort sperren/ändern.',
+  },
+  {
+    level: 'niedrig',
+    title: 'JTL Versionen bestätigt',
+    description:
+      'Shop 5.4.2 + WAWI 1.9.4 sind aktuell und vollständig kompatibel. REST API + Webhooks vorhanden. Kein Update nötig.',
+  },
+  {
+    level: 'niedrig',
+    title: 'All-inkl DNS',
+    description:
+      'Stabile Propagation, klares Interface. Typisch unter 30 Min. Kein Strato/1&1-Risiko.',
+  },
+  {
+    level: 'niedrig',
+    title: 'WhatsApp-Aktivierung',
+    description:
+      'Struktur wird in Phase 1 vorbereitet. Wenn HFK bereit: Aktivierung ohne Umbau möglich. Gutes Upsell-Argument nach 2–3 Monaten.',
+  },
+]
+
+export const GOLIVELISTE = [
+  { id: 'gl01', title: 'Zendesk Account aktiv und getestet', sub: '✓ Suite Growth · 6 Agenten eingeloggt' },
+  { id: 'gl02', title: 'E-Mail-Kanal vollständig', sub: '✓ SPF + DKIM · Senden + Empfangen getestet' },
+  { id: 'gl03', title: 'JTL Integration getestet', sub: '✓ Normal · Möbel · Retoure durchgespielt' },
+  { id: 'gl04', title: 'Alle 3 SLA-Policies aktiv', sub: '✓ Standard · Dringend · Möbel/Sperrgut' },
+  { id: 'gl05', title: 'Alle 6 Makros funktionsfähig', sub: '✓ M-01 bis M-06 getestet' },
+  { id: 'gl06', title: 'Omnichannel Routing aktiv', sub: '✓ Highest Spare Capacity · 4 Gruppen' },
+  { id: 'gl07', title: 'Copilot aktiviert (Auto-Answer OFF)', sub: '✓ Suggestions · Summarize · Expand · Tone' },
+  { id: 'gl08', title: 'Help Center published', sub: '✓ 10 Artikel · 6 Kategorien · DE' },
+  { id: 'gl09', title: 'Schulung abgehalten', sub: '✓ Alle 6 Agenten · 90 Min. Remote' },
+  { id: 'gl10', title: 'Kurzanleitung versendet', sub: '✓ PDF an alle 6 Agenten' },
+  { id: 'gl11', title: 'Top-5 Anfragen von HFK erhalten', sub: '⚠ AUSSTEHEND — Projektstart-Voraussetzung', pending: true },
+  { id: 'gl12', title: 'All-inkl Zugangsdaten erhalten', sub: '⚠ AUSSTEHEND — Phase 2 Voraussetzung', pending: true },
+]
+
+export const FAQ_HFK = [
+  {
+    q: 'Warum brauchen wir das? Outlook reicht doch.',
+    a: 'Outlook ist kein Ticketsystem. Bei 50–100 E-Mails täglich und 6 Mitarbeitern gibt es keine Zuweisung, kein SLA, keine JTL-Integration, keine KI und kein Reporting. Anfragen werden doppelt beantwortet oder vergessen, Bestelldaten müssen manuell nachgeschlagen werden. Zendesk löst alle diese Probleme — mit einem System das Ihr Team in einem Tag lernt.',
+    tip: 'Frage zurückstellen: "Wie lange sucht Ihr Team heute im Schnitt nach Bestelldaten pro Anfrage?"',
+  },
+  {
+    q: 'Was kostet Zendesk monatlich?',
+    a: 'Zendesk zahlen Sie direkt — unabhängig von unserem Projektpreis. Ich empfehle Suite Growth mit 4 Volllizenzen + kostenlose Light Agents für GF und Lager: ca. €356/Mo. Die KI (Copilot) ist als Add-on optional — ca. €50/Agent.',
+    tip: 'Lizenz-Optimierung als Mehrwert positionieren — HFK spart €2.136/Jahr durch 4 statt 6 Volllizenzen.',
+  },
+  {
+    q: 'Wie lange dauert die Einrichtung?',
+    a: '4 Wochen von Projektstart bis Go-Live. 5 Phasen: Setup → E-Mail/DNS → JTL-Integration → Automationen → KI/Schulung. Ich brauche nur zwei Dinge von Ihnen: Liste Ihrer Top-5 Anfragen + kurzzeitiger All-inkl-Zugang für DNS.',
+    tip: 'Konkrete Folgefrage: "Wann können wir starten? Ich reserviere den Slot für Sie."',
+  },
+  {
+    q: 'Muss unser Team viel lernen?',
+    a: 'Nein — Zendesk wurde gebaut damit Support-Teams es einfach nutzen können. Ich schule alle 6 Mitarbeiter in 90 Minuten remote gleichzeitig. Danach gibt es eine Kurzanleitung. Die meisten Agenten sind nach 1–2 Tagen vollständig selbstständig.',
+    tip: 'Konkret: "Vergleichbar mit der Zeit die Sie gebraucht haben um JTL zu lernen — aber deutlich einfacher."',
+  },
+  {
+    q: 'Was ist mit DSGVO?',
+    a: 'Zendesk nutzt EU-Rechenzentren (Frankfurt). Auftragsverarbeitungsvertrag (AVV) mit Zendesk ist Standard. Ihre Kundendaten verlassen die EU nicht. Ich unterstütze beim korrekten Setup aller DSGVO-Einstellungen.',
+    tip: '"Zendesk hat die höchsten Compliance-Zertifizierungen für EU-Kunden."',
+  },
+  {
+    q: 'Wir haben Möbel mit langen Lieferzeiten — kann das System damit umgehen?',
+    a: 'Genau dafür habe ich eine spezielle Konfiguration: eigene SLA-Policy für Möbel (24h/72h statt Standard 8h/48h), eigene Routing-Gruppe "Möbel & Lieferung" und einen dedizierten Webhook der Liefertermin-Bestätigungen aus JTL direkt ins Ticket schreibt.',
+    tip: 'Das zeigt dass der Shop wirklich analysiert wurde — starkes Vertrauenssignal.',
+  },
+  {
+    q: 'Was wenn JTL ein Update macht und die Integration bricht?',
+    a: 'Die JTL App im Zendesk Marketplace wird für alle aktuellen JTL-Versionen aktualisiert. Bei kritischen Updates würde ich im Rahmen der 30 Tage Nachbetreuung reagieren. Langfristig empfehle ich einen Betreuungsvertrag.',
+    tip: 'Gute Gelegenheit Betreuungsvertrag zu erwähnen.',
+  },
+  {
+    q: 'Wir haben gehört dass Zendesk teuer und kompliziert ist.',
+    a: 'Das stimmt für Enterprise-Pakete — nicht für Suite Growth. Suite Growth ist genau für Shops Ihrer Größe gebaut. Und "kompliziert" bezieht sich auf selbst-einrichten. Wir richten alles ein, schulen Ihr Team und Sie starten direkt produktiv.',
+    tip: 'Freshdesk hätte keine native JTL-App — zeigt Kompetenz.',
+  },
+]
+
+export const LIZENZEN = [
+  { rolle: '4 aktive Support-Agenten', typ: 'Suite Growth Full Agent', kosten: '4 × €89 = €356/Mo.', hinweis: 'Vollzugriff, Antworten, Tickets' },
+  { rolle: 'GF / Geschäftsführung', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Lesen + interne Kommentare' },
+  { rolle: 'Lagerleiter / Logistik', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Lesen + interne Kommentare' },
+  { rolle: 'Verwaltung / Einkauf', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Suite Growth: bis 50 Light Agents gratis' },
+]
+
+export const UPSELLS = [
+  { icon: '📱', title: 'WhatsApp-Kanal', description: 'Struktur ist vorbereitet. Aktivierung dauert ~1 Tag. Perfekter Einstieg nach 2–3 Monaten.', preis: '~€600–800 einmalig' },
+  { icon: '💬', title: 'Live Chat', description: 'Chat-Widget auf herrundfrauklein.com. Agenten sehen alles an einem Ort.', preis: '~€500–700 einmalig' },
+  { icon: '🔄', title: 'Betreuungsvertrag', description: 'Monatliche Pflege: Makros aktualisieren, Berichte, Help Center erweitern, Prioritätssupport.', preis: '€150–350/Mo. recurring' },
+  { icon: '📊', title: 'Analytics Dashboard', description: 'Custom Zendesk Explore Dashboards: Volumen, SLA-Compliance, Agenten-Performance, CSAT-Trends.', preis: '~€400–600 einmalig' },
+  { icon: '🏪', title: 'Zweiter Standort / Shop', description: 'Falls HFK expandiert. Gleiche Struktur, neues Branding, schneller Setup.', preis: '~€1.500–2.000 einmalig' },
+  { icon: '🤖', title: 'Copilot-Erweiterung', description: 'Mehr Help Center Artikel, bessere KI-Antworten, Auto-Answer für einfache Anfragen.', preis: '~€300–500 einmalig' },
+]

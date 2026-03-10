@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run build)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm --version)",
+      "Bash(ls /c/Users/Mago/Downloads/Zendesk/HFK_All3/webapp/node_modules/.bin/vite*)"
+    ]
+  }
+}

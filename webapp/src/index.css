@@ -1,0 +1,78 @@
+:root {
+  --primary: #5C7A6A;
+  --primary-l: #EBF2EE;
+  --primary-m: #C8DDD3;
+  --accent: #3FCF8E;
+  --ink: #0D1117;
+  --ink-m: #1E242C;
+  --ink-l: #2A3240;
+  --border: #1E242C;
+  --border-l: #252C36;
+  --muted: #5A6474;
+  --muted-l: #7A8A9A;
+  --white: #E8EDF2;
+  --white-d: #C4CDD8;
+  --green: #3FCF8E;
+  --green-d: rgba(63,207,142,.1);
+  --green-b: rgba(63,207,142,.2);
+  --amber: #F59E0B;
+  --amber-d: rgba(245,158,11,.1);
+  --red: #EF4444;
+  --red-d: rgba(239,68,68,.08);
+  --blue: #60A5FA;
+  --blue-d: rgba(96,165,250,.08);
+  --purple: #A78BFA;
+  --purple-d: rgba(167,139,250,.08);
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
+  --r: 6px;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--ink);
+  color: var(--white);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, textarea { font-family: inherit; }
+
+.mono { font-family: var(--font-mono); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--border-l); border-radius: 3px; }
+
+/* Utility */
+.text-green { color: var(--green); }
+.text-amber { color: var(--amber); }
+.text-red { color: var(--red); }
+.text-blue { color: var(--blue); }
+.text-purple { color: var(--purple); }
+.text-muted { color: var(--muted-l); }
+
+.bg-green-d { background: var(--green-d); }
+.bg-amber-d { background: var(--amber-d); }
+.bg-red-d { background: var(--red-d); }
+.bg-blue-d { background: var(--blue-d); }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn .25s ease both; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

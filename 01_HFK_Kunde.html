@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herr & Frau Klein — Ihr neuer Kundenservice</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sage:#5C7A6A; --sage-l:#EBF2EE; --sage-m:#C8DDD3;
+  --cream:#F8F4EE; --warm:#EDE5D8; --ink:#1C1F1D; --ink-m:#3A403C; --muted:#7A8A80;
+  --white:#FFFFFF; --gold:#B8893A; --r:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);font-size:15px;line-height:1.7}
+
+/* ── COVER ── */
+.cover{background:var(--ink);color:var(--white);min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 65% 55% at 80% 10%,rgba(92,122,106,.32) 0%,transparent 55%),
+             radial-gradient(ellipse 45% 50% at 5% 90%,rgba(184,137,58,.1) 0%,transparent 50%);pointer-events:none}
+.cover-top{display:flex;justify-content:space-between;align-items:center;padding:40px 64px;position:relative;z-index:1}
+.logo{font-family:'Cormorant Garamond',serif;font-size:21px;letter-spacing:.03em}
+.logo span{color:var(--sage-m)}
+.cover-date{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase}
+.cover-body{display:flex;flex-direction:column;justify-content:center;padding:64px;position:relative;z-index:1}
+.eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage-m);margin-bottom:28px;display:flex;align-items:center;gap:14px}
+.eyebrow::before{content:'';width:40px;height:1px;background:var(--sage-m)}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(46px,6.5vw,82px);line-height:1.02;font-weight:400;margin-bottom:22px}
+h1 em{font-style:italic;color:var(--sage-m)}
+.cover-sub{font-size:18px;color:rgba(255,255,255,.5);max-width:560px;margin-bottom:52px;font-weight:300;line-height:1.65}
+.cover-pills{display:flex;flex-wrap:wrap;gap:10px}
+.pill{padding:8px 18px;border-radius:40px;font-size:12px;font-weight:500;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);background:rgba(255,255,255,.05)}
+.pill-g{background:rgba(92,122,106,.22);border-color:rgba(92,122,106,.45);color:var(--sage-m)}
+.cover-bottom{padding:40px 64px;border-top:1px solid rgba(255,255,255,.07);position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center}
+.cover-claim{font-family:'Cormorant Garamond',serif;font-size:16px;color:rgba(255,255,255,.35);max-width:420px;line-height:1.65;font-style:italic}
+.cover-from{text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.28);line-height:1.9}
+
+/* ── PAGE ── */
+.page{max-width:900px;margin:0 auto;padding:80px 48px}
+.sec{margin-bottom:72px}
+.sec-head{display:flex;align-items:center;gap:18px;margin-bottom:36px}
+.num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;flex-shrink:0}
+.num-s{background:var(--sage);color:var(--white)}
+.num-i{background:var(--ink);color:var(--white)}
+h2{font-family:'Cormorant Garamond',serif;font-size:33px;font-weight:400}
+.div{border:none;border-top:1px solid var(--warm);margin-bottom:36px}
+
+/* PROBLEM CARDS */
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
+.prob{padding:28px 24px;background:var(--white);border:1px solid var(--warm);border-radius:var(--r);position:relative;overflow:hidden}
+.prob::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--warm)}
+.prob-icon{font-size:30px;margin-bottom:14px}
+.prob-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:8px}
+.prob-text{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* SOLUTION FLOW */
+.flow-wrap{background:var(--ink);border-radius:var(--r);padding:36px;margin-bottom:28px}
+.flow-lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:24px}
+.flow-row{display:flex;align-items:stretch;gap:0}
+.fbox{flex:1;padding:18px 12px;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px}
+.fbox-ico{font-size:24px;margin-bottom:8px}
+.fbox-t{font-size:13px;font-weight:500;color:var(--white)}
+.fbox-s{font-size:11.5px;color:rgba(255,255,255,.38);margin-top:4px;line-height:1.45}
+.farr{display:flex;align-items:center;padding:0 8px;color:rgba(255,255,255,.2);font-size:20px;flex-shrink:0}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.feat{display:flex;gap:16px;padding:20px;background:var(--white);border:1px solid var(--warm);border-radius:var(--r);align-items:flex-start}
+.feat-ico{font-size:22px;flex-shrink:0;margin-top:2px}
+.feat-t{font-weight:600;font-size:14px;margin-bottom:5px}
+.feat-d{font-size:13px;color:var(--muted);line-height:1.55}
+
+/* WHAT YOU GET */
+.gets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:32px}
+.get{background:var(--white);border:1px solid var(--warm);border-radius:var(--r);overflow:hidden}
+.get-head{background:var(--sage);color:var(--white);padding:14px 20px}
+.get-step{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;opacity:.7;text-transform:uppercase;margin-bottom:3px}
+.get-title{font-family:'Cormorant Garamond',serif;font-size:18px}
+.get-body{padding:16px 20px}
+ul.getl{list-style:none}
+ul.getl li{font-size:13px;color:var(--ink-m);padding:4px 0;display:flex;gap:8px;line-height:1.45}
+ul.getl li::before{content:'✓';color:var(--sage);flex-shrink:0;font-weight:600}
+
+/* QUOTE */
+.quote{background:var(--sage);color:var(--white);border-radius:var(--r);padding:40px 44px;display:flex;gap:24px;align-items:flex-start;margin-bottom:0}
+.q-mark{font-family:'Cormorant Garamond',serif;font-size:80px;line-height:.65;color:rgba(255,255,255,.25);flex-shrink:0;margin-top:8px}
+.q-text{font-family:'Cormorant Garamond',serif;font-size:21px;font-style:italic;line-height:1.55}
+.q-by{margin-top:14px;font-size:12px;color:rgba(255,255,255,.5);font-family:'Jost',sans-serif}
+
+/* NEXT */
+.nxt{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ns{border-radius:var(--r);padding:24px;border:1px solid}
+.ns-g{background:var(--sage-l);border-color:var(--sage-m)}
+.ns-i{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.ns-n{font-family:'DM Mono',monospace;font-size:10px;margin-bottom:7px}
+.ns-g .ns-n{color:var(--sage)} .ns-i .ns-n{color:rgba(255,255,255,.35)}
+.ns-t{font-weight:600;font-size:15px;margin-bottom:5px}
+.ns-d{font-size:13px;line-height:1.55}
+.ns-g .ns-d{color:var(--muted)} .ns-i .ns-d{color:rgba(255,255,255,.55)}
+
+footer{background:var(--ink);color:rgba(255,255,255,.28);text-align:center;padding:32px;font-size:12px;font-family:'DM Mono',monospace;line-height:1.9}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.cover-body>*{animation:fadeUp .6s ease both}
+.cover-body>*:nth-child(1){animation-delay:.1s}
+.cover-body>*:nth-child(2){animation-delay:.25s}
+.cover-body>*:nth-child(3){animation-delay:.4s}
+.cover-body>*:nth-child(4){animation-delay:.55s}
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-top">
+    <div class="logo">Dadakaev <span>Labs</span></div>
+    <div class="cover-date">März 2025</div>
+  </div>
+  <div class="cover-body">
+    <div class="eyebrow">Exklusiv für Herr &amp; Frau Klein GmbH</div>
+    <h1>Kundenservice,<br>der <em>wirklich</em><br>funktioniert.</h1>
+    <p class="cover-sub">Weniger Aufwand für Ihr Team. Schnellere Antworten für Ihre Kunden. Ein System, das zu Ihrem Shop passt — von Anfang an.</p>
+    <div class="cover-pills">
+      <span class="pill pill-g">✓ Auf herrundfrauklein.com zugeschnitten</span>
+      <span class="pill pill-g">✓ Volle JTL-Anbindung</span>
+      <span class="pill pill-g">✓ KI unterstützt Ihr Team</span>
+      <span class="pill">DSGVO-konform · Wien</span>
+      <span class="pill">6 Agenten · 50–100 Mails/Tag</span>
+    </div>
+  </div>
+  <div class="cover-bottom">
+    <div class="cover-claim">"Jede Anfrage landet beim richtigen Mitarbeiter — mit allen Bestelldaten bereits sichtbar. Automatisch."</div>
+    <div class="cover-from">Vorgestellt von<br>Dadakaev Labs<br>Wien, Österreich</div>
+  </div>
+</section>
+
+<div class="page">
+
+  <!-- 01 DAS PROBLEM -->
+  <div class="sec">
+    <div class="sec-head"><div class="num num-s">01</div><h2>Was heute Zeit kostet — und wie es besser wird</h2></div>
+    <hr class="div">
+    <div class="prob-grid">
+      <div class="prob">
+        <div class="prob-icon">📬</div>
+        <div class="prob-title">Kein Überblick</div>
+        <div class="prob-text">Anfragen landen im allgemeinen Postfach. Wer antwortet? Wurde schon geantwortet? Doppelarbeit ist unvermeidbar.</div>
+      </div>
+      <div class="prob">
+        <div class="prob-icon">🔍</div>
+        <div class="prob-title">JTL separat öffnen</div>
+        <div class="prob-text">Für jede Anfrage muss Ihr Team extra in JTL nachschauen — Bestellnummer, Status, Tracking. Das kostet täglich Stunden.</div>
+      </div>
+      <div class="prob">
+        <div class="prob-icon">✍️</div>
+        <div class="prob-title">Gleiche Texte, immer wieder</div>
+        <div class="prob-text">Versandzeiten, Retouren, Tonie-Fragen — jede Antwort wird von Grund auf neu geschrieben. Ohne Vorlage, ohne KI-Unterstützung.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 DIE LÖSUNG -->
+  <div class="sec">
+    <div class="sec-head"><div class="num num-s">02</div><h2>So läuft es künftig — automatisch</h2></div>
+    <hr class="div">
+    <div class="flow-wrap">
+      <div class="flow-lbl">Der Weg einer Kundenanfrage durch Ihr neues System</div>
+      <div class="flow-row">
+        <div class="fbox"><div class="fbox-ico">👩</div><div class="fbox-t">Kundin schreibt</div><div class="fbox-s">E-Mail an service@<br>herrundfrauklein.com</div></div>
+        <div class="farr">→</div>
+        <div class="fbox"><div class="fbox-ico">🎫</div><div class="fbox-t">Ticket erstellt</div><div class="fbox-s">Eingangsbestätigung automatisch in Ihrem Design</div></div>
+        <div class="farr">→</div>
+        <div class="fbox"><div class="fbox-ico">📦</div><div class="fbox-t">JTL-Daten sichtbar</div><div class="fbox-s">Bestellung, Status, Tracking — ohne Nachschauen</div></div>
+        <div class="farr">→</div>
+        <div class="fbox"><div class="fbox-ico">🤖</div><div class="fbox-t">KI schlägt vor</div><div class="fbox-s">Antwortidee aus Ihrer Wissensbasis</div></div>
+        <div class="farr">→</div>
+        <div class="fbox"><div class="fbox-ico">✅</div><div class="fbox-t">Agent prüft &amp; sendet</div><div class="fbox-s">Kontrolliert, schnell, professionell</div></div>
+      </div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat"><div class="feat-ico">🎯</div><div><div class="feat-t">Automatisches Routing</div><div class="feat-d">Möbelfragen → Möbel-Team. Tonies → Spielzeug-Team. Kein manuelles Zuweisen mehr.</div></div></div>
+      <div class="feat"><div class="feat-ico">⚡</div><div><div class="feat-t">6 Schnellantworten</div><div class="feat-d">Fertige Vorlagen für Versandstatus, Retoure, Liefertermin, defekte Tonies, Größenberatung und mehr.</div></div></div>
+      <div class="feat"><div class="feat-ico">⏱️</div><div><div class="feat-t">SLA-Überwachung</div><div class="feat-d">Das System warnt wenn eine Anfrage dringend wird. Keine Anfrage bleibt unbeantwortet.</div></div></div>
+      <div class="feat"><div class="feat-ico">🌿</div><div><div class="feat-t">Ihr Branding in jeder E-Mail</div><div class="feat-d">Alle ausgehenden Nachrichten im Cream/Sage Design von Herr &amp; Frau Klein. Professionell und einheitlich.</div></div></div>
+      <div class="feat"><div class="feat-ico">📱</div><div><div class="feat-t">WhatsApp — wenn Sie wollen</div><div class="feat-d">Wir bereiten alles vor. Sobald Sie WhatsApp aktivieren möchten, ist es mit einem Klick möglich — kein Umbau.</div></div></div>
+      <div class="feat"><div class="feat-ico">🔒</div><div><div class="feat-t">DSGVO-konform</div><div class="feat-d">EU-Rechenzentrum. Auftragsverarbeitungsvertrag mit Zendesk. Österreichisches Datenschutzrecht eingehalten.</div></div></div>
+    </div>
+  </div>
+
+  <!-- 03 WAS WIRD EINGERICHTET -->
+  <div class="sec">
+    <div class="sec-head"><div class="num num-s">03</div><h2>Was wir konkret für Sie einrichten</h2></div>
+    <hr class="div">
+    <div class="gets">
+      <div class="get">
+        <div class="get-head"><div class="get-step">Schritt 1</div><div class="get-title">Ihr System aufbauen</div></div>
+        <div class="get-body">
+          <ul class="getl">
+            <li>Zendesk im HFK-Design (Cream &amp; Sage)</li>
+            <li>6 Mitarbeiter-Zugänge eingerichtet</li>
+            <li>4 Zuständigkeits-Gruppen</li>
+            <li>Österreichische Geschäftszeiten</li>
+            <li>Automatische Eingangsbestätigung</li>
+            <li>E-Mail vollständig verbunden</li>
+          </ul>
+        </div>
+      </div>
+      <div class="get">
+        <div class="get-head"><div class="get-step">Schritt 2</div><div class="get-title">JTL verbunden</div></div>
+        <div class="get-body">
+          <ul class="getl">
+            <li>Bestelldaten direkt im Ticket sichtbar</li>
+            <li>Tracking-Nummer automatisch</li>
+            <li>Möbel-Liefertermine integriert</li>
+            <li>Retouren-Status in Echtzeit</li>
+            <li>Webhooks für 4 Ereignisse</li>
+            <li>Kein manuelles Nachschauen mehr</li>
+          </ul>
+        </div>
+      </div>
+      <div class="get">
+        <div class="get-head"><div class="get-step">Schritt 3</div><div class="get-title">KI &amp; Go-Live</div></div>
+        <div class="get-body">
+          <ul class="getl">
+            <li>AI Copilot für Ihr Team aktiviert</li>
+            <li>Wissensbasis mit 10 Artikeln</li>
+            <li>6 fertige Schnellantworten</li>
+            <li>Kundenzufriedenheits-Umfrage</li>
+            <li>90-Min. Schulung für alle 6 Agenten</li>
+            <li>Kurzanleitung für den Alltag</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="quote">
+      <div class="q-mark">"</div>
+      <div>
+        <div class="q-text">Ihr Team beantwortet in derselben Zeit doppelt so viele Anfragen — weil JTL-Daten automatisch erscheinen und die KI den ersten Entwurf liefert. Ihre Mitarbeiter prüfen und senden.</div>
+        <div class="q-by">Dadakaev Labs · Zendesk &amp; JTL Spezialist · Wien</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 NÄCHSTE SCHRITTE -->
+  <div class="sec">
+    <div class="sec-head"><div class="num num-i">04</div><h2>Was jetzt zu tun ist</h2></div>
+    <hr class="div">
+    <div class="nxt">
+      <div class="ns ns-g">
+        <div class="ns-n">01 — Von Ihnen erbeten</div>
+        <div class="ns-t">Ihre häufigsten 5 Anfragen</div>
+        <div class="ns-d">Welche Fragen kommen am öftesten? Wir richten die KI-Wissensbasis und Schnellantworten genau darauf aus. Eine einfache Liste per E-Mail reicht völlig.</div>
+      </div>
+      <div class="ns ns-g">
+        <div class="ns-n">02 — Von Ihnen erbeten</div>
+        <div class="ns-t">Kurz-Zugang zu All-inkl</div>
+        <div class="ns-d">Für die E-Mail-Einrichtung tragen wir 3 DNS-Einträge ein. Das dauert 10 Minuten — danach können Sie den Zugang sofort sperren oder ändern.</div>
+      </div>
+      <div class="ns ns-i">
+        <div class="ns-n">03 — Von uns</div>
+        <div class="ns-t">Alles andere übernehmen wir</div>
+        <div class="ns-d">Setup, Integration, Tests, Konfiguration. Ihr Team muss nichts vorbereiten. Wir melden uns sobald das System bereit ist.</div>
+      </div>
+      <div class="ns ns-i">
+        <div class="ns-n">04 — Am Ende</div>
+        <div class="ns-t">Schulung &amp; Sie sind live</div>
+        <div class="ns-d">90-Minuten Remote-Schulung für alle 6 Mitarbeiter gleichzeitig. Mit Kurzanleitung zum Nachschlagen. Danach sind Ihre Agenten vollständig selbstständig.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Dadakaev Labs · Zendesk &amp; JTL Spezialist · Wien, Österreich<br>
+  Erstellt exklusiv für Herr &amp; Frau Klein GmbH · Alle Inhalte vertraulich
+</footer>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "HFK Dashboard",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["node_modules/vite/bin/vite.js"],
+      "port": 5173,
+      "autoPort": true,
+      "cwd": "C:\\Users\\Mago\\Downloads\\Zendesk\\HFK_All3\\webapp"
+    }
+  ]
+}
