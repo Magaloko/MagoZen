@@ -6,8 +6,8 @@ import { useLanguage } from '../context/LanguageContext'
 // ── Typ config ────────────────────────────────────────────────────────────────
 const TYP = {
   self:        { color: 'var(--green)',  bg: 'var(--green-d)',  border: 'var(--green-b)' },
-  'third-party':{ color: '#C47C20',      bg: '#2a1f0a',         border: 'rgba(245,158,11,.25)' },
-  mixed:       { color: '#2563A8',       bg: '#0d1a2e',         border: 'rgba(37,99,168,.3)' },
+  'third-party':{ color: '#92400E',      bg: 'rgba(217,119,6,.06)',  border: 'rgba(217,119,6,.2)' },
+  mixed:       { color: '#1D4ED8',       bg: 'rgba(37,99,235,.06)',  border: 'rgba(37,99,235,.2)' },
 }
 
 const STATUS_ORDER = ['pending', 'active', 'waiting', 'done']
@@ -43,8 +43,8 @@ export default function DemoPage() {
   const statusColors = {
     pending: { bg: 'var(--border)',        color: 'var(--muted-l)' },
     active:  { bg: 'var(--green-d)',       color: 'var(--green)' },
-    waiting: { bg: 'rgba(245,158,11,.15)', color: '#C47C20' },
-    done:    { bg: 'rgba(37,99,168,.15)',  color: '#2563A8' },
+    waiting: { bg: 'rgba(217,119,6,.08)', color: '#92400E' },
+    done:    { bg: 'rgba(37,99,235,.08)',  color: '#1D4ED8' },
   }
 
   const statusLabel = (s) => ({
@@ -241,10 +241,10 @@ export default function DemoPage() {
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: cfg.color }}>⏱</span>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted-l)' }}>{m.dauer}</span>
                           {m.typ === 'third-party' && (
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#C47C20', padding: '1px 6px', background: '#2a1f0a', borderRadius: 3, border: '1px solid rgba(245,158,11,.2)' }}>⚠ wartet auf Dritte</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#92400E', padding: '1px 6px', background: 'rgba(217,119,6,.06)', borderRadius: 3, border: '1px solid rgba(217,119,6,.2)' }}>⚠ wartet auf Dritte</span>
                           )}
                           {m.typ === 'mixed' && (
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#2563A8', padding: '1px 6px', background: '#0d1a2e', borderRadius: 3, border: '1px solid rgba(37,99,168,.25)' }}>◑ gemischt</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#1D4ED8', padding: '1px 6px', background: 'rgba(37,99,235,.06)', borderRadius: 3, border: '1px solid rgba(37,99,235,.2)' }}>◑ gemischt</span>
                           )}
                         </div>
 
@@ -261,7 +261,7 @@ export default function DemoPage() {
                               <span style={{ color: 'var(--muted)' }}>{internOpen ? '▲' : '▼'}</span>
                             </button>
                             {internOpen && (
-                              <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(239,68,68,.06)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 6, fontSize: 12, color: '#f87171', fontFamily: 'var(--font-mono)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                              <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(239,68,68,.06)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 6, fontSize: 12, color: 'var(--red)', fontFamily: 'var(--font-mono)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                                 {m.intern}
                               </div>
                             )}
