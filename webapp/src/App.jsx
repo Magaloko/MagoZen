@@ -5,6 +5,7 @@ import ProtectedRoute from './components/shared/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import LandingPage from './pages/LandingPage'
 import HomePage from './pages/HomePage'
 import GeneralPage from './pages/GeneralPage'
 import NewProjectWizard from './pages/NewProjectWizard'
@@ -24,14 +25,15 @@ import ProjectSettingsPage from './pages/ProjectSettingsPage'
 import UserManagementPage from './pages/UserManagementPage'
 import RechnerPage from './pages/RechnerPage'
 
-// Redirect component that sends customers to their project
-function HomeRedirect() {
-  const { isCustomer, membership, loading } = useAuth()
+// Public root: landing page for guests, redirect for authenticated users
+function PublicHome() {
+  const { user, isCustomer, membership, loading } = useAuth()
   if (loading) return null
+  if (!user) return <LandingPage />
   if (isCustomer && membership?.project_id) {
     return <Navigate to={`/projects/${membership.project_id}`} replace />
   }
-  return <HomePage />
+  return <Navigate to="/home" replace />
 }
 
 export default function App() {
@@ -40,7 +42,8 @@ export default function App() {
       <AuthProvider>
         <ProjectProvider>
           <Routes>
-            {/* Public routes — no layout */}
+            {/* Public routes — no layout, no auth required */}
+            <Route index element={<PublicHome />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/rechner" element={<RechnerPage />} />
@@ -48,8 +51,8 @@ export default function App() {
             {/* Protected routes — auth required */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
-                {/* Home — admin sees all projects, customer redirects */}
-                <Route index element={<HomeRedirect />} />
+                {/* Home — admin project list */}
+                <Route path="home" element={<HomePage />} />
 
                 {/* Admin-only global routes */}
                 <Route element={<ProtectedRoute requireAdmin />}>
