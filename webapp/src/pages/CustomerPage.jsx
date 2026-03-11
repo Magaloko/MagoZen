@@ -6,6 +6,7 @@ import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
 
 const FIELDS = [
   { key: 'name', labelKey: 'customer.labels.name' },
@@ -62,38 +63,61 @@ export default function CustomerPage() {
   const { projectId } = useParams()
   const { project, update } = useProject(projectId)
   const { t } = useLanguage()
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(null)
-  const [saving, setSaving] = useState(false)
+  const [editing, setEditing]     = useState(false)
+  const [draft, setDraft]         = useState(null)
+  const [original, setOriginal]   = useState(null)
+  const [saving, setSaving]       = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [changedFields, setChangedFields] = useState([])
 
-  const customer = project?.customer_data || CUSTOMER
-  const lizenzen = project?.service_package?.lizenzen || LIZENZEN
-  const gruppen = project?.service_package?.gruppen || GRUPPEN
+  const customer        = project?.customer_data || CUSTOMER
+  const lizenzen        = project?.service_package?.lizenzen || LIZENZEN
+  const gruppen         = project?.service_package?.gruppen || GRUPPEN
   const copilotSettings = project?.service_package?.copilot_settings || COPILOT_SETTINGS
 
   const agentsLabel = project
     ? [
-        project.service_package?.agents_full ? `${project.service_package.agents_full} Full` : null,
+        project.service_package?.agents_full  ? `${project.service_package.agents_full} Full`  : null,
         project.service_package?.agents_light ? `${project.service_package.agents_light} Light` : null,
       ].filter(Boolean).join(' + ') || '–'
     : '6 Agenten (4 Full + 2 Light)'
 
   const startEdit = () => {
-    setDraft({ ...customer })
+    const snap = { ...customer }
+    setOriginal(snap)
+    setDraft({ ...snap })
     setEditing(true)
   }
 
   const cancelEdit = () => {
     setDraft(null)
+    setOriginal(null)
     setEditing(false)
+    setConfirmOpen(false)
   }
 
-  const saveEdit = async () => {
+  // Intercept save — compute diff and show modal if anything changed
+  const requestSave = () => {
+    const changed = FIELDS.filter((f) => (draft[f.key] ?? '') !== (original[f.key] ?? ''))
+    if (changed.length === 0) {
+      // No changes — just close edit mode
+      setEditing(false)
+      setDraft(null)
+      setOriginal(null)
+      return
+    }
+    setChangedFields(changed)
+    setConfirmOpen(true)
+  }
+
+  const confirmSave = async () => {
     setSaving(true)
     try {
       await update({ customer_data: draft })
       setEditing(false)
       setDraft(null)
+      setOriginal(null)
+      setConfirmOpen(false)
     } catch (e) {
       console.error('Save failed:', e)
     } finally {
@@ -110,6 +134,47 @@ export default function CustomerPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
 
+      {/* Confirmation Modal */}
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Änderungen bestätigen"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Zurück zum Bearbeiten</Button>
+            <Button variant="primary" onClick={confirmSave} loading={saving}>Bestätigen & Speichern</Button>
+          </>
+        }
+      >
+        <div style={{ fontSize: 13, color: 'var(--muted-l)', marginBottom: 16 }}>
+          Folgende Felder werden geändert. Bitte prüfen Sie die Änderungen vor dem Speichern.
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr>
+                {['Feld', 'Vorher', 'Nachher'].map((h) => (
+                  <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: 'var(--border)', color: 'var(--muted-l)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {changedFields.map((f) => (
+                <tr key={f.key}>
+                  <td style={{ padding: '9px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted-l)', whiteSpace: 'nowrap' }}>{t(f.labelKey)}</td>
+                  <td style={{ padding: '9px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 11, maxWidth: 200, wordBreak: 'break-all' }}>
+                    {original[f.key] || '—'}
+                  </td>
+                  <td style={{ padding: '9px 10px', borderBottom: '1px solid var(--border)', color: 'var(--green)', fontFamily: 'var(--font-mono)', fontSize: 11, maxWidth: 200, wordBreak: 'break-all' }}>
+                    {draft[f.key] || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Modal>
+
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
@@ -119,7 +184,7 @@ export default function CustomerPage() {
             {editing ? (
               <>
                 <Button size="sm" variant="ghost" onClick={cancelEdit}>Abbrechen</Button>
-                <Button size="sm" variant="primary" onClick={saveEdit} loading={saving}>Speichern</Button>
+                <Button size="sm" variant="primary" onClick={requestSave} loading={saving}>Speichern</Button>
               </>
             ) : (
               <Button size="sm" variant="secondary" onClick={startEdit}>✎ Bearbeiten</Button>

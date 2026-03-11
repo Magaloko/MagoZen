@@ -4,6 +4,7 @@ import { PHASES } from '../data/hfkData'
 import { useProject } from '../context/ProjectContext'
 import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
+import { isTaskAvailable, getPlanId, ZENDESK_PLANS } from '../utils/planUtils'
 import Badge from '../components/ui/Badge'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -52,13 +53,14 @@ function StatusBadge({ status, onClick }) {
   )
 }
 
-function PhaseBlock({ phase, checked, onToggle, taskStatus, onCycleStatus, taskFields, onUpdateField, t }) {
+function PhaseBlock({ phase, availableTasks, lockedTasks, checked, onToggle, taskStatus, onCycleStatus, taskFields, onUpdateField, t }) {
   const [open, setOpen] = useState(true)
   const [openFields, setOpenFields] = useState({})
+  const [lockedOpen, setLockedOpen] = useState(false)
   const colors = phaseColors[phase.color] || phaseColors.green
-  const done = phase.tasks.filter((task) => checked[task.id]).length
-  const total = phase.tasks.length
-  const pct = Math.round((done / total) * 100)
+  const done = availableTasks.filter((task) => checked[task.id]).length
+  const total = availableTasks.length
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
   const toggleFields = (id) => setOpenFields((prev) => ({ ...prev, [id]: !prev[id] }))
 
@@ -86,7 +88,7 @@ function PhaseBlock({ phase, checked, onToggle, taskStatus, onCycleStatus, taskF
 
       {open && (
         <div style={{ padding: '6px 0' }}>
-          {phase.tasks.map((task) => {
+          {availableTasks.map((task) => {
             const isDone = !!checked[task.id]
             const hasFields = task.fields && task.fields.length > 0
             const status = taskStatus[task.id] || 'erstellt'
@@ -179,7 +181,7 @@ function PhaseBlock({ phase, checked, onToggle, taskStatus, onCycleStatus, taskF
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: 'var(--muted-l)' }}>{done}/{total} {t('phases.done')}</span>
             {done < total && (
-              <Button size="sm" variant="ghost" onClick={() => phase.tasks.forEach((task) => {
+              <Button size="sm" variant="ghost" onClick={() => availableTasks.forEach((task) => {
                 const hasFields = task.fields && task.fields.length > 0
                 const status = taskStatus[task.id] || 'erstellt'
                 if (!hasFields || status === 'funktioniert') onToggle(task.id, true)
@@ -187,10 +189,44 @@ function PhaseBlock({ phase, checked, onToggle, taskStatus, onCycleStatus, taskF
                 {t('phases.markAll')}
               </Button>
             )}
-            {done === total && (
+            {done === total && total > 0 && (
               <span style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{t('phases.phaseComplete')}</span>
             )}
           </div>
+
+          {/* Locked tasks (plan gate) */}
+          {lockedTasks.length > 0 && (
+            <div style={{ borderTop: '1px solid var(--border)' }}>
+              <button
+                onClick={() => setLockedOpen((v) => !v)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '10px 18px', background: 'transparent', border: 'none',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                  🔒 Nicht verfügbar in diesem Plan ({lockedTasks.length} Tasks)
+                </span>
+                <span style={{ fontSize: 10, color: 'var(--muted)', marginLeft: 'auto' }}>{lockedOpen ? '▲' : '▼'}</span>
+              </button>
+              {lockedOpen && (
+                <div>
+                  {lockedTasks.map((task) => (
+                    <div key={task.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 18px', opacity: 0.5, borderTop: '1px solid var(--border)' }}>
+                      <div style={{ width: 18, height: 18, border: '2px solid var(--border)', borderRadius: 3, flexShrink: 0, marginTop: 2 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, color: 'var(--muted-l)' }}>{task.title}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                          Ab {task.available_from?.charAt(0).toUpperCase() + task.available_from?.slice(1)} verfügbar
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </Card>
@@ -205,7 +241,10 @@ export default function PhasesPage() {
   const [taskStatus, setTaskStatus] = useProjectState('task-status', {}, projectId)
   const [taskFields, setTaskFields] = useProjectState('task-fields', {}, projectId)
 
-  const phases = project?.service_package?.phases || PHASES
+  const phases   = project?.service_package?.phases || PHASES
+  const planName = project?.service_package?.plan || ''
+  const planId   = getPlanId(planName)
+  const planInfo = ZENDESK_PLANS.find((p) => p.id === planId)
 
   const handleToggle = (id, forceTrue) => {
     setChecked((prev) => ({ ...prev, [id]: forceTrue !== undefined ? forceTrue : !prev[id] }))
@@ -227,11 +266,42 @@ export default function PhasesPage() {
     }))
   }
 
-  const totalDone = phases.flatMap((p) => p.tasks || []).filter((task) => checked[task.id]).length
-  const totalAll = phases.flatMap((p) => p.tasks || []).length
+  // Split tasks per plan
+  const phasesWithFilter = phases.map((phase) => ({
+    ...phase,
+    availableTasks: (phase.tasks || []).filter((t) => isTaskAvailable(t, planName)),
+    lockedTasks:    (phase.tasks || []).filter((t) => !isTaskAvailable(t, planName)),
+  }))
+
+  const totalDone   = phasesWithFilter.flatMap((p) => p.availableTasks).filter((task) => checked[task.id]).length
+  const totalAll    = phasesWithFilter.flatMap((p) => p.availableTasks).length
+  const totalLocked = phasesWithFilter.flatMap((p) => p.lockedTasks).length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Plan banner */}
+      <div style={{
+        padding: '10px 16px', borderRadius: 8,
+        background: planName ? 'rgba(63,207,142,.06)' : 'rgba(100,116,139,.06)',
+        border: planName ? '1px solid var(--green-b)' : '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+      }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: planName ? 'var(--green)' : 'var(--muted)' }}>
+          Plan: {planInfo?.name || 'Kein Plan konfiguriert'}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)' }}>
+          {totalAll} Tasks verfügbar
+          {totalLocked > 0 && (
+            <span style={{ color: 'var(--muted)', marginLeft: 6 }}>· {totalLocked} gesperrt</span>
+          )}
+        </div>
+        {!planName && (
+          <div style={{ fontSize: 11, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>
+            → Plan in Einstellungen auswählen
+          </div>
+        )}
+      </div>
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--green)' }}>{totalDone} / {totalAll} {t('phases.tasks')}</span>
@@ -240,10 +310,12 @@ export default function PhasesPage() {
         <Button size="sm" variant="ghost" onClick={() => { if (window.confirm(t('phases.resetConfirm'))) setChecked({}) }}>{t('phases.reset')}</Button>
       </div>
 
-      {phases.map((phase) => (
+      {phasesWithFilter.map((phase) => (
         <PhaseBlock
           key={phase.id}
           phase={phase}
+          availableTasks={phase.availableTasks}
+          lockedTasks={phase.lockedTasks}
           checked={checked}
           onToggle={handleToggle}
           taskStatus={taskStatus}

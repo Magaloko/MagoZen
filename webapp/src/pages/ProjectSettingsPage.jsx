@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase'
 import { useProject } from '../context/ProjectContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import Badge from '../components/ui/Badge'
+import { ZENDESK_PLANS, ADDON_PRICES, calcCost } from '../utils/planUtils'
 
 const TOGGLEABLE_PAGES = [
   { seg: 'phasen',    label: 'Phasen',         icon: '◈' },
@@ -16,6 +18,248 @@ const TOGGLEABLE_PAGES = [
   { seg: 'faq',       label: 'FAQ',             icon: '?' },
   { seg: 'demo',      label: 'Demo & Schulung', icon: '▷' },
 ]
+
+// ─── Paket-Konfiguration ─────────────────────────────────────────────────────
+
+function SpinnerInput({ value, onChange, min = 0, max = 20, disabled }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <button
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={disabled || value <= min}
+        style={{
+          width: 28, height: 28, borderRadius: 4, border: '1px solid var(--border)',
+          background: 'var(--ink-m)', color: 'var(--white-d)', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+          opacity: (disabled || value <= min) ? 0.4 : 1,
+        }}
+      >−</button>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: 'var(--white)', minWidth: 28, textAlign: 'center' }}>
+        {value}
+      </span>
+      <button
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={disabled || value >= max}
+        style={{
+          width: 28, height: 28, borderRadius: 4, border: '1px solid var(--border)',
+          background: 'var(--ink-m)', color: 'var(--white-d)', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+          opacity: (disabled || value >= max) ? 0.4 : 1,
+        }}
+      >+</button>
+    </div>
+  )
+}
+
+function PaketKonfig({ project, onSave }) {
+  const sp = project?.service_package || {}
+
+  const initPlanId = () => {
+    const name = sp.plan || ''
+    const lower = name.toLowerCase()
+    if (lower.includes('enterprise'))   return 'enterprise'
+    if (lower.includes('professional')) return 'professional'
+    if (lower.includes('growth'))       return 'growth'
+    return 'team'
+  }
+
+  const [planId, setPlanId]           = useState(initPlanId)
+  const [agentsFull, setAgentsFull]   = useState(sp.agents_full  ?? 4)
+  const [agentsLight, setAgentsLight] = useState(sp.agents_light ?? 2)
+  const [addons, setAddons]           = useState(sp.addons || {})
+  const [saving, setSaving]           = useState(false)
+  const [saved, setSaved]             = useState(false)
+
+  const plan      = ZENDESK_PLANS.find((p) => p.id === planId)
+  const tier      = plan?.tier || 1
+  const cost      = calcCost(planId, agentsFull, agentsLight, addons)
+
+  const toggleAddon = (key) => setAddons((prev) => ({ ...prev, [key]: !prev[key] }))
+
+  const handleSave = async () => {
+    setSaving(true)
+    await onSave({
+      plan:                  plan.name,
+      plan_id:               planId,
+      plan_price_per_agent:  plan.price,
+      agents_full:           agentsFull,
+      agents_light:          agentsLight,
+      addons,
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const fmt = (n) => `€${n.toLocaleString('de-AT', { minimumFractionDigits: 0 })}`
+
+  return (
+    <Card>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 20 }}>
+        Paket-Konfiguration
+      </div>
+
+      {/* Plan selector */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', marginBottom: 10 }}>Zendesk Plan</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+          {ZENDESK_PLANS.map((p) => {
+            const active = p.id === planId
+            return (
+              <div
+                key={p.id}
+                onClick={() => setPlanId(p.id)}
+                style={{
+                  padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
+                  border: active ? '2px solid var(--green)' : '1px solid var(--border)',
+                  background: active ? 'rgba(63,207,142,.06)' : 'transparent',
+                  transition: 'all .15s', position: 'relative',
+                }}
+              >
+                {p.highlight && (
+                  <div style={{ position: 'absolute', top: -8, right: 8, background: 'var(--green)', color: 'var(--ink)', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 10, letterSpacing: '.05em' }}>
+                    EMPFOHLEN
+                  </div>
+                )}
+                <div style={{ fontWeight: 700, fontSize: 13, color: active ? 'var(--green)' : 'var(--white-d)', marginBottom: 2 }}>{p.name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: active ? 'var(--green)' : 'var(--muted)', marginBottom: 8 }}>
+                  {fmt(p.price)}/Agent/Mo.
+                </div>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                  {p.features.map((f) => (
+                    <li key={f} style={{ fontSize: 11, color: 'var(--muted-l)', marginBottom: 2, display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                      <span style={{ color: active ? 'var(--green)' : 'var(--border-l)', flexShrink: 0 }}>✓</span>{f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Agent spinners */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>Agenten</div>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 12, color: 'var(--muted-l)', marginBottom: 6 }}>Full Agents</div>
+            <SpinnerInput value={agentsFull} onChange={setAgentsFull} min={1} max={50} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: 'var(--muted-l)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+              Light Agents
+              {tier < 3 && (
+                <span style={{ fontSize: 10, color: 'var(--amber)', fontFamily: 'var(--font-mono)', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 4, padding: '1px 6px' }}>
+                  Nur ab Professional
+                </span>
+              )}
+              {tier >= 3 && (
+                <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)', background: 'rgba(63,207,142,.08)', border: '1px solid var(--green-b)', borderRadius: 4, padding: '1px 6px' }}>
+                  Kostenlos inklusive
+                </span>
+              )}
+            </div>
+            <SpinnerInput value={agentsLight} onChange={setAgentsLight} min={0} max={50} disabled={tier < 3} />
+          </div>
+        </div>
+      </div>
+
+      {/* Addons */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>Add-ons</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+          {Object.entries(ADDON_PRICES).map(([key, info]) => {
+            const active    = !!addons[key]
+            const locked    = info.requiresTier > tier
+            return (
+              <label
+                key={key}
+                onClick={() => !locked && toggleAddon(key)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px', borderRadius: 6, cursor: locked ? 'not-allowed' : 'pointer',
+                  border: active ? '1px solid var(--green-b)' : '1px solid var(--border)',
+                  background: active ? 'rgba(63,207,142,.04)' : locked ? 'rgba(0,0,0,.04)' : 'transparent',
+                  opacity: locked ? 0.6 : 1, transition: 'all .15s', userSelect: 'none',
+                }}
+              >
+                <div style={{
+                  width: 18, height: 18, borderRadius: 3, flexShrink: 0,
+                  border: active ? '2px solid var(--green)' : '2px solid var(--border-l)',
+                  background: active ? 'var(--green)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {active && <span style={{ color: 'var(--ink)', fontSize: 10, fontWeight: 700 }}>✓</span>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: active ? 'var(--white-d)' : 'var(--muted-l)', fontWeight: 600 }}>{info.label}</div>
+                  {info.pricePerAgent > 0 && (
+                    <div style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                      +{fmt(info.pricePerAgent)}/Agent/Mo.
+                    </div>
+                  )}
+                  {locked && (
+                    <div style={{ fontSize: 10, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>
+                      Erfordert Professional+
+                    </div>
+                  )}
+                </div>
+              </label>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Live cost calculation */}
+      <div style={{ padding: '16px 18px', background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 20 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12 }}>
+          Live-Kalkulation
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Lizenzen/Mo.</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--white)' }}>{fmt(cost.licenseMonthly)}</div>
+          </div>
+          {cost.copilotMonthly > 0 && (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>+ Copilot/Mo.</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--blue)' }}>{fmt(cost.copilotMonthly)}</div>
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Gesamt/Mo.</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--green)' }}>{fmt(cost.totalMonthly)}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Jährlich (–20%)</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--white-d)' }}>{fmt(cost.totalYearly)}</div>
+          </div>
+        </div>
+
+        {/* Light agent savings tip */}
+        {tier >= 3 && agentsLight > 0 && (
+          <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(63,207,142,.06)', border: '1px solid var(--green-b)', borderRadius: 6, fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
+            💡 Mit {agentsLight} Light Agent{agentsLight > 1 ? 's' : ''} sparen Sie {fmt(agentsLight * plan.price)}/Mo. gegenüber rein Full-Agent Konfiguration
+          </div>
+        )}
+        {tier < 3 && agentsLight > 0 && cost.lightSavings > 0 && (
+          <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 6, fontSize: 12, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>
+            💡 Upgrade auf Professional → Light Agents kostenlos, Ersparnis {fmt(agentsLight * plan.price)}/Mo.
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="primary" onClick={handleSave} loading={saving}>
+          {saved ? '✓ Gespeichert' : 'Paket speichern'}
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+// ─── Member Card ──────────────────────────────────────────────────────────────
 
 function MemberCard({ member, onTogglePage, onToggleAll, onRevoke, onCopied, copied, saving }) {
   const inviteUrl = member.invite_token
@@ -138,9 +382,11 @@ function MemberCard({ member, onTogglePage, onToggleAll, onRevoke, onCopied, cop
   )
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 export default function ProjectSettingsPage() {
   const { projectId } = useParams()
-  const { project } = useProject(projectId)
+  const { project, update } = useProject(projectId)
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
@@ -214,6 +460,14 @@ export default function ProjectSettingsPage() {
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
         Projekt-Einstellungen: {project?.short_name || project?.name}
       </div>
+
+      {/* Paket-Konfiguration */}
+      {project && (
+        <PaketKonfig
+          project={project}
+          onSave={(pkg) => update({ service_package: { ...(project.service_package || {}), ...pkg } })}
+        />
+      )}
 
       {/* Invite new member */}
       <Card>
