@@ -1,7 +1,11 @@
 import { useState } from 'react'
-import { UPSELLS } from '../data/hfkData'
+import { Link } from 'react-router-dom'
+import { UPSELLS, PHASES } from '../data/hfkData'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
+
+const PHASES_DEFAULT = Object.fromEntries(PHASES.map((p) => [p.id, p.honorar]))
 
 const PLANS = [
   { id: 'team', label: 'Suite Team', price: 55 },
@@ -10,12 +14,12 @@ const PLANS = [
   { id: 'enterprise', label: 'Suite Enterprise', price: 169 },
 ]
 
-const honorarRows = [
-  { label: 'Phase 1–2: Setup + DNS', sub: '~8h: Zendesk Account, Branding, Gruppen, Agenten, E-Mail, DNS All-inkl', val: '€640' },
-  { label: 'Phase 3: JTL Integration', sub: '~10h: API-User, REST API, Marketplace App, Datenmapping, Webhook, Tests', val: '€800' },
-  { label: 'Phase 4: Automationen + Makros', sub: '~8h: Trigger, SLA-Policies, 6 Makros, Routing, CSAT, Views', val: '€640' },
-  { label: 'Phase 5: Copilot + Help Center', sub: '~6h: Copilot Aktivierung, 10 Artikel schreiben, 6 Kategorien, Testen', val: '€480' },
-  { label: 'Schulung + Doku + 30 Tage', sub: '~4h: Remote-Schulung 90 Min., Kurzanleitung PDF, Nachbetreuung', val: '€320' },
+const HONORAR_ROWS_DEF = [
+  { label: 'Phase 1–2: Setup + DNS', sub: '~8h: Zendesk Account, Branding, Gruppen, Agenten, E-Mail, DNS All-inkl', phases: ['phase1', 'phase2'] },
+  { label: 'Phase 3: JTL Integration', sub: '~10h: API-User, REST API, Marketplace App, Datenmapping, Webhook, Tests', phases: ['phase3'] },
+  { label: 'Phase 4: Automationen + Makros', sub: '~8h: Trigger, SLA-Policies, 6 Makros, Routing, CSAT, Views', phases: ['phase4'] },
+  { label: 'Phase 5: Copilot + Help Center', sub: '~6h: Copilot Aktivierung, 10 Artikel schreiben, 6 Kategorien, Testen', phases: ['phase5'] },
+  { label: 'Schulung + Doku + 30 Tage', sub: '~4h: Remote-Schulung 90 Min., Kurzanleitung PDF, Nachbetreuung', phases: ['phase6'] },
 ]
 
 const laufendRows = [
@@ -151,6 +155,28 @@ function LizenzRechner() {
 
 export default function InternPage() {
   const { t } = useLanguage()
+  const [angebotData] = useLocalStorage('hfk-angebot', null)
+
+  const phasePrices = angebotData?.phases
+    ? { ...PHASES_DEFAULT, ...angebotData.phases }
+    : PHASES_DEFAULT
+
+  const extraTotal = angebotData?.extras
+    ? angebotData.extras.reduce((a, e) => a + (Number(e.price) || 0), 0)
+    : 0
+
+  const honorarRows = HONORAR_ROWS_DEF.map((row) => {
+    const total = row.phases.reduce((a, id) => a + (Number(phasePrices[id]) || 0), 0)
+    const defaultTotal = row.phases.reduce((a, id) => a + (PHASES_DEFAULT[id] || 0), 0)
+    const isCustom = angebotData && total !== defaultTotal
+    return { ...row, val: `€${total.toLocaleString('de')}`, isCustom }
+  })
+
+  const honorarTotal = honorarRows.reduce((a, r) => {
+    return a + r.phases.reduce((s, id) => s + (Number(phasePrices[id]) || 0), 0)
+  }, 0) + extraTotal
+
+  const angebotAktiv = !!angebotData
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -161,8 +187,20 @@ export default function InternPage() {
       {/* Fee */}
       <Card style={{ padding: 0 }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-          <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: 14 }}>{t('intern.fee.title')}</span>
-          <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{t('intern.fee.note')}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: 14 }}>{t('intern.fee.title')}</span>
+            {angebotAktiv && (
+              <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', background: 'var(--green-d)', color: 'var(--green)', border: '1px solid var(--green-b)', borderRadius: 4, padding: '2px 8px', fontWeight: 700 }}>
+                ✓ ANGEBOT AKTIV
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{t('intern.fee.note')}</span>
+            <Link to="/angebot" style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--green)', textDecoration: 'none', border: '1px solid var(--green-b)', borderRadius: 4, padding: '3px 10px', background: 'var(--green-d)', whiteSpace: 'nowrap' }}>
+              Angebot bearbeiten →
+            </Link>
+          </div>
         </div>
         {honorarRows.map((r) => (
           <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 20px', borderBottom: '1px solid var(--border)', gap: 14, flexWrap: 'wrap' }}>
@@ -170,15 +208,26 @@ export default function InternPage() {
               <div style={{ fontSize: 13.5, color: 'var(--white-d)' }}>{r.label}</div>
               <div style={{ fontSize: 11.5, color: 'var(--muted-l)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>{r.sub}</div>
             </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--green)', fontWeight: 500, flexShrink: 0 }}>{r.val}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+              {r.isCustom && <span style={{ fontSize: 10, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>✎</span>}
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: r.isCustom ? 'var(--amber)' : 'var(--green)', fontWeight: 500 }}>{r.val}</div>
+            </div>
           </div>
         ))}
+        {angebotData?.extras?.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid var(--border)', gap: 14 }}>
+            <div style={{ fontSize: 13, color: 'var(--muted-l)', fontStyle: 'italic' }}>
+              + {angebotData.extras.length} Zusatz-{angebotData.extras.length === 1 ? 'Position' : 'Positionen'}
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--amber)', fontWeight: 500 }}>€{extraTotal.toLocaleString('de')}</div>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', background: 'rgba(63,207,142,.06)', borderTop: '2px solid var(--green-b)', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <div style={{ fontWeight: 600, fontSize: 15 }}>{t('intern.fee.total')}</div>
             <div style={{ fontSize: 12, color: 'var(--muted-l)', marginTop: 2 }}>{t('intern.fee.sub')}</div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 24, color: 'var(--green)', fontWeight: 600 }}>€2.880</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 24, color: 'var(--green)', fontWeight: 600 }}>€{honorarTotal.toLocaleString('de')}</div>
         </div>
       </Card>
 

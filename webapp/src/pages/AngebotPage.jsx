@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { PHASES } from '../data/hfkData'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
@@ -55,8 +56,12 @@ export default function AngebotPage() {
     <div style={{ maxWidth: 820 }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>
-          Intern · Vertraulich
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <Link to="/intern" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            ← Kalkulation
+          </Link>
+          <span style={{ fontSize: 11, color: 'var(--border)' }}>·</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Intern · Vertraulich</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--fg, var(--white))', margin: 0 }}>
