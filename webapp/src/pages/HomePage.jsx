@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useProjects } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
+import Button from '../components/ui/Button'
 
 const STATUS_BADGE = {
   active:    'green',
@@ -25,7 +26,8 @@ function getProgressFromCache(projectId, phases) {
 
 export default function HomePage() {
   const { t } = useLanguage()
-  const { projects, loading } = useProjects()
+  const { projects, loading, deleteProject } = useProjects()
+  const navigate = useNavigate()
 
   const activeCount = projects.filter((p) => p.status === 'active').length
   const totalAgents = projects.reduce((a, p) => {
@@ -114,9 +116,26 @@ export default function HomePage() {
                         {project.name !== project.short_name ? project.name : (cd.url || '')}
                       </div>
                     </div>
-                    <Badge color={STATUS_BADGE[project.status] || 'blue'} style={{ marginLeft: 10, flexShrink: 0 }}>
-                      {t(`status.${project.status}`) || project.status}
-                    </Badge>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 10, flexShrink: 0 }}>
+                      <Badge color={STATUS_BADGE[project.status] || 'blue'}>
+                        {t(`status.${project.status}`) || project.status}
+                      </Badge>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          if (window.confirm(`Projekt "${project.name}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) {
+                            deleteProject(project.id)
+                          }
+                        }}
+                        title="Projekt löschen"
+                        style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 14, padding: '2px 6px', borderRadius: 4, lineHeight: 1, transition: 'color .15s' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--red)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
 
                   {/* Progress bar */}

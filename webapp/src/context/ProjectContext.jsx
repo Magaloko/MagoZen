@@ -115,10 +115,18 @@ export function ProjectProvider({ children }) {
     throw error
   }
 
+  const deleteProject = async (id) => {
+    const { error } = await supabase.from('projects').delete().eq('id', id)
+    if (!error) {
+      setProjects(prev => prev.filter(p => p.id !== id))
+    }
+    if (error) throw error
+  }
+
   const getProjectById = (id) => projects.find(p => p.id === id) || null
 
   return (
-    <ProjectContext.Provider value={{ projects, loading, createProject, updateProject, getProjectById }}>
+    <ProjectContext.Provider value={{ projects, loading, createProject, updateProject, deleteProject, getProjectById }}>
       {children}
     </ProjectContext.Provider>
   )

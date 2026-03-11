@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useProject } from '../context/ProjectContext'
 import { useProjectState } from '../hooks/useProjectState'
@@ -8,11 +9,21 @@ import Badge from '../components/ui/Badge'
 import ProgressRing from '../components/shared/ProgressRing'
 
 const phaseColors = { green: 'var(--green)', blue: 'var(--blue)', amber: 'var(--amber)', purple: 'var(--purple)' }
+const STATUS_OPTIONS = [
+  { value: 'planning', label: 'Planung' },
+  { value: 'active', label: 'Aktiv' },
+  { value: 'paused', label: 'Pausiert' },
+  { value: 'completed', label: 'Abgeschlossen' },
+]
 
 export default function Dashboard() {
   const { projectId } = useParams()
-  const { project, loading } = useProject(projectId)
+  const { project, update, loading } = useProject(projectId)
   const { t } = useLanguage()
+  const [editingName, setEditingName] = useState(false)
+  const [editingShort, setEditingShort] = useState(false)
+  const [nameVal, setNameVal] = useState('')
+  const [shortVal, setShortVal] = useState('')
   const [checked] = useProjectState('tasks', {}, projectId)
   const [glChecked] = useProjectState('golive', {}, projectId)
   const [angebotData] = useProjectState('angebot', null, projectId)
@@ -50,8 +61,80 @@ export default function Dashboard() {
     return <div style={{ padding: 40, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>Loading...</div>
   }
 
+  const saveName = () => {
+    if (nameVal.trim() && nameVal.trim() !== project?.name) {
+      update({ name: nameVal.trim() })
+    }
+    setEditingName(false)
+  }
+  const saveShort = () => {
+    if (shortVal.trim() !== (project?.short_name || '')) {
+      update({ short_name: shortVal.trim() })
+    }
+    setEditingShort(false)
+  }
+  const changeStatus = (newStatus) => {
+    update({ status: newStatus })
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Editable project header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        {editingName ? (
+          <input
+            autoFocus
+            value={nameVal}
+            onChange={(e) => setNameVal(e.target.value)}
+            onBlur={saveName}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
+            style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 6, padding: '4px 10px', outline: 'none', minWidth: 200 }}
+          />
+        ) : (
+          <span
+            onClick={() => { setNameVal(project?.name || ''); setEditingName(true) }}
+            title="Klick zum Bearbeiten"
+            style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', cursor: 'pointer', borderBottom: '1px dashed var(--border)' }}
+          >
+            {project?.name || 'Projektname'}
+          </span>
+        )}
+
+        {editingShort ? (
+          <input
+            autoFocus
+            value={shortVal}
+            onChange={(e) => setShortVal(e.target.value)}
+            onBlur={saveShort}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveShort(); if (e.key === 'Escape') setEditingShort(false) }}
+            style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--muted-l)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 4, padding: '3px 8px', outline: 'none', width: 80 }}
+          />
+        ) : (
+          <span
+            onClick={() => { setShortVal(project?.short_name || ''); setEditingShort(true) }}
+            title="Kürzel bearbeiten"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', padding: '3px 8px', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
+          >
+            {project?.short_name || '—'}
+          </span>
+        )}
+
+        <select
+          value={project?.status || 'planning'}
+          onChange={(e) => changeStatus(e.target.value)}
+          style={{
+            fontFamily: 'var(--font-mono)', fontSize: 11, padding: '4px 8px',
+            borderRadius: 4, border: '1px solid var(--border)', cursor: 'pointer', outline: 'none',
+            background: project?.status === 'active' ? 'var(--green-d)' : 'var(--ink-m)',
+            color: project?.status === 'active' ? 'var(--green)' : 'var(--muted-l)',
+          }}
+        >
+          {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+
+        <span style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>✎ klick zum bearbeiten</span>
+      </div>
 
       {/* Hero KPI Strip */}
       <div style={{ background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>

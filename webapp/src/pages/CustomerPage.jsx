@@ -1,24 +1,70 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { CUSTOMER, GRUPPEN, LIZENZEN, COPILOT_SETTINGS } from '../data/hfkData'
 import { useProject } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
+import Button from '../components/ui/Button'
 
-function Row({ label, value, mono }) {
-  if (!value) return null
+const FIELDS = [
+  { key: 'name', labelKey: 'customer.labels.name' },
+  { key: 'short', labelKey: 'customer.labels.short', mono: true },
+  { key: 'url', labelKey: 'customer.labels.url', mono: true },
+  { key: 'email', labelKey: 'customer.labels.email', mono: true },
+  { key: 'hoster', labelKey: 'customer.labels.hoster' },
+  { key: 'zendeskSubdomain', labelKey: 'customer.labels.zendesk', mono: true },
+  { key: 'jtlShop', labelKey: 'customer.labels.jtlShop', mono: true },
+  { key: 'jtlWawi', labelKey: 'customer.labels.jtlWawi', mono: true },
+  { key: 'volumen', labelKey: 'customer.labels.volume' },
+  { key: 'markt', labelKey: 'customer.labels.market' },
+  { key: 'timezone', labelKey: 'customer.labels.tz', mono: true },
+  { key: 'sortiment', labelKey: 'customer.labels.range' },
+  { key: 'aktuelleKanäle', labelKey: 'customer.labels.channels' },
+]
+
+function Row({ label, value, mono, editing, onChange }) {
   return (
-    <div style={{ display: 'flex', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13, alignItems: 'center', flexWrap: 'wrap' }}>
       <span style={{ color: 'var(--muted-l)', minWidth: 140, flexShrink: 0 }}>{label}</span>
-      <span style={{ fontFamily: mono ? 'var(--font-mono)' : undefined, fontSize: mono ? 12 : 13, color: mono ? 'var(--green)' : 'var(--white-d)', wordBreak: 'break-all' }}>{value}</span>
+      {editing ? (
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            flex: 1, minWidth: 160,
+            fontFamily: mono ? 'var(--font-mono)' : 'var(--font-sans)',
+            fontSize: mono ? 12 : 13,
+            color: 'var(--white-d)',
+            background: 'var(--ink)',
+            border: '1px solid var(--border)',
+            borderRadius: 5,
+            padding: '5px 8px',
+            outline: 'none',
+          }}
+        />
+      ) : (
+        <span style={{
+          fontFamily: mono ? 'var(--font-mono)' : undefined,
+          fontSize: mono ? 12 : 13,
+          color: value ? (mono ? 'var(--green)' : 'var(--white-d)') : 'var(--muted)',
+          wordBreak: 'break-all',
+        }}>
+          {value || '—'}
+        </span>
+      )}
     </div>
   )
 }
 
 export default function CustomerPage() {
   const { projectId } = useParams()
-  const { project } = useProject(projectId)
+  const { project, update } = useProject(projectId)
   const { t } = useLanguage()
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const customer = project?.customer_data || CUSTOMER
   const lizenzen = project?.service_package?.lizenzen || LIZENZEN
@@ -32,27 +78,66 @@ export default function CustomerPage() {
       ].filter(Boolean).join(' + ') || '–'
     : '6 Agenten (4 Full + 2 Light)'
 
+  const startEdit = () => {
+    setDraft({ ...customer })
+    setEditing(true)
+  }
+
+  const cancelEdit = () => {
+    setDraft(null)
+    setEditing(false)
+  }
+
+  const saveEdit = async () => {
+    setSaving(true)
+    try {
+      await update({ customer_data: draft })
+      setEditing(false)
+      setDraft(null)
+    } catch (e) {
+      console.error('Save failed:', e)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const updateField = (key, val) => {
+    setDraft((prev) => ({ ...prev, [key]: val }))
+  }
+
+  const displayData = editing ? draft : customer
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
 
       <Card>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
-          {t('customer.confirmed')}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+            {t('customer.confirmed')}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {editing ? (
+              <>
+                <Button size="sm" variant="ghost" onClick={cancelEdit}>Abbrechen</Button>
+                <Button size="sm" variant="primary" onClick={saveEdit} loading={saving}>Speichern</Button>
+              </>
+            ) : (
+              <Button size="sm" variant="secondary" onClick={startEdit}>✎ Bearbeiten</Button>
+            )}
+          </div>
         </div>
-        <Row label={t('customer.labels.name')} value={customer.name} />
-        <Row label={t('customer.labels.short')} value={customer.short} mono />
-        <Row label={t('customer.labels.url')} value={customer.url} mono />
-        <Row label={t('customer.labels.email')} value={customer.email} mono />
-        <Row label={t('customer.labels.hoster')} value={customer.hoster} />
-        <Row label={t('customer.labels.zendesk')} value={customer.zendeskSubdomain} mono />
-        <Row label={t('customer.labels.jtlShop')} value={customer.jtlShop} mono />
-        <Row label={t('customer.labels.jtlWawi')} value={customer.jtlWawi} mono />
-        <Row label={t('customer.labels.agents')} value={agentsLabel} />
-        <Row label={t('customer.labels.volume')} value={customer.volumen} />
-        <Row label={t('customer.labels.market')} value={customer.markt} />
-        <Row label={t('customer.labels.tz')} value={customer.timezone} mono />
-        <Row label={t('customer.labels.range')} value={customer.sortiment} />
-        <Row label={t('customer.labels.channels')} value={customer.aktuelleKanäle} />
+
+        {FIELDS.map((f) => (
+          <Row
+            key={f.key}
+            label={t(f.labelKey)}
+            value={displayData[f.key]}
+            mono={f.mono}
+            editing={editing}
+            onChange={(val) => updateField(f.key, val)}
+          />
+        ))}
+        {!editing && <Row label={t('customer.labels.agents')} value={agentsLabel} />}
       </Card>
 
       <Card>
