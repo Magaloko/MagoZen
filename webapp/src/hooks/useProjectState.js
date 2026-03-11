@@ -23,6 +23,7 @@ export function useProjectState(key, initialValue, projectId) {
 
   useEffect(() => {
     if (!projectId) return
+    let cancelled = false
     supabase
       .from('project_state')
       .select('value')
@@ -30,13 +31,19 @@ export function useProjectState(key, initialValue, projectId) {
       .eq('key', key)
       .maybeSingle()
       .then(({ data, error }) => {
+        if (cancelled) return
         if (!error && data?.value !== undefined) {
           latestRef.current = data.value
           setValue(data.value)
           try { window.localStorage.setItem(storageKey, JSON.stringify(data.value)) } catch {}
         }
       })
+    return () => { cancelled = true }
   }, [key, projectId, storageKey])
+
+  useEffect(() => {
+    return () => { clearTimeout(saveTimer.current) }
+  }, [])
 
   const set = useCallback((newValueOrFn) => {
     const next = typeof newValueOrFn === 'function'

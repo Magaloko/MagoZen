@@ -42,8 +42,8 @@ export default function ProtectedRoute({ requireAdmin = false }) {
   // Customer on a project page → check page visibility
   if (isCustomer && projectId) {
     // Customer can only access their assigned project
-    if (membership?.project_id !== projectId) {
-      return <Navigate to={`/projects/${membership?.project_id}`} replace />
+    if (!membership?.project_id || membership.project_id !== projectId) {
+      return <Navigate to={membership?.project_id ? `/projects/${membership.project_id}` : '/'} replace />
     }
 
     // Check segment visibility

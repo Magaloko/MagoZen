@@ -71,7 +71,11 @@ function PaketKonfig({ project, onSave }) {
   const [planId, setPlanId]           = useState(initPlanId)
   const [agentsFull, setAgentsFull]   = useState(sp.agents_full  ?? 4)
   const [agentsLight, setAgentsLight] = useState(sp.agents_light ?? 2)
-  const [addons, setAddons]           = useState(sp.addons || {})
+  const [addons, setAddons]           = useState(() => {
+    const raw = sp.addons
+    if (Array.isArray(raw)) return Object.fromEntries(raw.map((k) => [k, true]))
+    return raw || {}
+  })
   const [saving, setSaving]           = useState(false)
   const [saved, setSaved]             = useState(false)
 

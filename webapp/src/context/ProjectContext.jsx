@@ -120,10 +120,8 @@ export function ProjectProvider({ children }) {
 
   const deleteProject = async (id) => {
     const { error } = await supabase.from('projects').delete().eq('id', id)
-    if (!error) {
-      setProjects(prev => prev.filter(p => p.id !== id))
-    }
     if (error) throw error
+    setProjects(prev => prev.filter(p => p.id !== id))
   }
 
   const getProjectById = (id) => projects.find(p => p.id === id) || null

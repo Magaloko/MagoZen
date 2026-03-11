@@ -66,7 +66,7 @@ function PhaseBlock({ phase, availableTasks, lockedTasks, checked, onToggle, tas
 
   return (
     <Card style={{ overflow: 'hidden', padding: 0 }}>
-      <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', cursor: 'pointer', borderBottom: open ? '1px solid var(--border)' : 'none', flexWrap: 'wrap', gap: 10 }}>
+      <div onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', cursor: 'pointer', borderBottom: open ? '1px solid var(--border)' : 'none', flexWrap: 'wrap' }}>
         <Badge color={colors.badge}>{phase.number}</Badge>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 14 }}>{phase.title}</div>
