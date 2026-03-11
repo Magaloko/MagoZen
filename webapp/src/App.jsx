@@ -22,6 +22,7 @@ import DemoPage from './pages/DemoPage'
 import AngebotPage from './pages/AngebotPage'
 import ProjectSettingsPage from './pages/ProjectSettingsPage'
 import UserManagementPage from './pages/UserManagementPage'
+import RechnerPage from './pages/RechnerPage'
 
 // Redirect component that sends customers to their project
 function HomeRedirect() {
@@ -42,6 +43,7 @@ export default function App() {
             {/* Public routes — no layout */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/rechner" element={<RechnerPage />} />
 
             {/* Protected routes — auth required */}
             <Route element={<ProtectedRoute />}>

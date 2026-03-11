@@ -70,7 +70,7 @@ function StepIndicator({ current, serviceType }) {
                 {done ? '✓' : i + 1}
               </div>
               <div style={{ fontSize: 10, color: active ? accent : 'var(--muted)', textAlign: 'center', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 80 }}>
-                {t(stepKey)}
+                {stepKey === 'wizard.step.plan' && serviceType === 'power-automate' ? 'PA Plan' : t(stepKey)}
               </div>
             </div>
             {i < STEPS.length - 1 && (
