@@ -8,7 +8,11 @@ import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 
-const FIELDS = [
+const PA_BLUE = '#0078D4'
+const PA_BLUE_BG = 'rgba(0,120,212,0.1)'
+const PA_BLUE_BORDER = 'rgba(0,120,212,0.35)'
+
+const FIELDS_ZENDESK = [
   { key: 'name', labelKey: 'customer.labels.name' },
   { key: 'short', labelKey: 'customer.labels.short', mono: true },
   { key: 'url', labelKey: 'customer.labels.url', mono: true },
@@ -22,6 +26,19 @@ const FIELDS = [
   { key: 'timezone', labelKey: 'customer.labels.tz', mono: true },
   { key: 'sortiment', labelKey: 'customer.labels.range' },
   { key: 'aktuelleKanäle', labelKey: 'customer.labels.channels' },
+]
+
+const FIELDS_PA = [
+  { key: 'name',                label: 'Firmenname' },
+  { key: 'short',               label: 'Kürzel', mono: true },
+  { key: 'url',                 label: 'Website / Shop-URL', mono: true },
+  { key: 'email',               label: 'Support-E-Mail', mono: true },
+  { key: 'm365Tenant',          label: 'M365 Tenant-URL', mono: true },
+  { key: 'm365Plan',            label: 'M365 Lizenzplan' },
+  { key: 'powerPlatformRegion', label: 'Power Platform Region', mono: true },
+  { key: 'hoster',              label: 'Hoster / DNS' },
+  { key: 'volumen',             label: 'Anzahl Automatisierungen' },
+  { key: 'markt',               label: 'Markt', mono: true },
 ]
 
 function Row({ label, value, mono, editing, onChange }) {
@@ -70,12 +87,27 @@ export default function CustomerPage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [changedFields, setChangedFields] = useState([])
 
+  const svcType = project?.service_package?.service_type ?? 'zendesk'
+  const isPA = svcType === 'power-automate'
+  const FIELDS = isPA ? FIELDS_PA : FIELDS_ZENDESK
+  const accentColor = isPA ? PA_BLUE : 'var(--green)'
+  const accentD = isPA ? PA_BLUE_BG : 'var(--green-d)'
+  const accentB = isPA ? PA_BLUE_BORDER : 'var(--green-b)'
+
   const customer        = project?.customer_data || CUSTOMER
   const lizenzen        = project?.service_package?.lizenzen || LIZENZEN
   const gruppen         = project?.service_package?.gruppen || GRUPPEN
   const copilotSettings = project?.service_package?.copilot_settings || COPILOT_SETTINGS
 
-  const agentsLabel = project
+  const agentsLabel = isPA
+    ? (() => {
+        const sp = project?.service_package || {}
+        const plan = sp.plan_id === 'process'
+          ? `${sp.pa_processes || 1} Prozesse (Process-Plan)`
+          : `${sp.pa_users || 1} User (${sp.plan || 'PA Premium'})`
+        return plan
+      })()
+    : project
     ? [
         project.service_package?.agents_full  ? `${project.service_package.agents_full} Full`  : null,
         project.service_package?.agents_light ? `${project.service_package.agents_light} Light` : null,
@@ -98,7 +130,7 @@ export default function CustomerPage() {
 
   // Intercept save — compute diff and show modal if anything changed
   const requestSave = () => {
-    const changed = FIELDS.filter((f) => (draft[f.key] ?? '') !== (original[f.key] ?? ''))
+    const changed = FIELDS.filter((f) => (draft[f.key] ?? '') !== (original[f.key] ?? '')).map(f => ({ ...f, labelKey: f.labelKey || f.key }))
     if (changed.length === 0) {
       // No changes — just close edit mode
       setEditing(false)
@@ -161,7 +193,7 @@ export default function CustomerPage() {
             <tbody>
               {changedFields.map((f) => (
                 <tr key={f.key}>
-                  <td style={{ padding: '9px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted-l)', whiteSpace: 'nowrap' }}>{t(f.labelKey)}</td>
+                  <td style={{ padding: '9px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted-l)', whiteSpace: 'nowrap' }}>{f.label || t(f.labelKey)}</td>
                   <td style={{ padding: '9px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 11, maxWidth: 200, wordBreak: 'break-all' }}>
                     {original[f.key] || '—'}
                   </td>
@@ -177,8 +209,8 @@ export default function CustomerPage() {
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em' }}>
-            {t('customer.confirmed')}
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: accentColor, textTransform: 'uppercase', letterSpacing: '.1em' }}>
+            {isPA ? 'Kundendaten — Power Automate' : t('customer.confirmed')}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {editing ? (
@@ -195,18 +227,38 @@ export default function CustomerPage() {
         {FIELDS.map((f) => (
           <Row
             key={f.key}
-            label={t(f.labelKey)}
+            label={f.label || t(f.labelKey)}
             value={displayData[f.key]}
             mono={f.mono}
             editing={editing}
             onChange={(val) => updateField(f.key, val)}
           />
         ))}
-        {!editing && <Row label={t('customer.labels.agents')} value={agentsLabel} />}
+        {!editing && <Row label={isPA ? 'Lizenzierung' : t('customer.labels.agents')} value={agentsLabel} />}
       </Card>
 
+      {/* PA: Plan info card */}
+      {isPA && (
+        <Card>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: PA_BLUE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
+            Power Automate Lizenzplan
+          </div>
+          {[
+            ['Plan', project?.service_package?.plan || '—'],
+            ['PA-Users', project?.service_package?.pa_users ?? '—'],
+            ['PA-Prozesse', project?.service_package?.pa_processes ?? '—'],
+            ['Plan-Typ', project?.service_package?.plan_id === 'process' ? 'Per Process' : 'Per User'],
+          ].map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+              <span style={{ color: 'var(--muted-l)', minWidth: 120, flexShrink: 0 }}>{k}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: PA_BLUE }}>{String(v)}</span>
+            </div>
+          ))}
+        </Card>
+      )}
+
       <Card>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: accentColor, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
           {t('customer.branding')}
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -221,65 +273,69 @@ export default function CustomerPage() {
         </div>
       </Card>
 
-      <Card>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
-          {t('customer.groups')}
-        </div>
-        <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-          {gruppen.map((g) => (
-            <div key={g.name} style={{ padding: '14px 14px', background: 'var(--ink)', border: `1px solid ${g.inactive ? 'rgba(245,158,11,.2)' : 'var(--border)'}`, borderRadius: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{g.name}</span>
-                {g.inactive && <Badge color="amber">{t('customer.inactive')}</Badge>}
-              </div>
-              {g.agents.length > 0 && <div style={{ fontSize: 11, color: 'var(--muted-l)' }}>{g.agents.join(', ')}</div>}
+      {!isPA && (
+        <>
+          <Card>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
+              {t('customer.groups')}
             </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
-          {t('customer.licenses')}
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 420 }}>
-            <thead>
-              <tr>
-                {[t('customer.lic.role'), t('customer.lic.type'), t('customer.lic.cost'), t('customer.lic.note')].map((h) => (
-                  <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: 'var(--border)', color: 'var(--muted-l)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lizenzen.map((l, i) => (
-                <tr key={l.rolle} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,.02)' : 'transparent' }}>
-                  <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)' }}>{l.rolle}</td>
-                  <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)' }}>{l.typ}</td>
-                  <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>{l.kosten}</td>
-                  <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontSize: 12, color: 'var(--muted-l)' }}>{l.hinweis}</td>
-                </tr>
+            <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+              {gruppen.map((g) => (
+                <div key={g.name} style={{ padding: '14px 14px', background: 'var(--ink)', border: `1px solid ${g.inactive ? 'rgba(245,158,11,.2)' : 'var(--border)'}`, borderRadius: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>{g.name}</span>
+                    {g.inactive && <Badge color="amber">{t('customer.inactive')}</Badge>}
+                  </div>
+                  {g.agents.length > 0 && <div style={{ fontSize: 11, color: 'var(--muted-l)' }}>{g.agents.join(', ')}</div>}
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 6, fontSize: 12, color: 'var(--green)' }}>
-          {t('customer.savings')}
-        </div>
-      </Card>
+            </div>
+          </Card>
 
-      <Card>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
-          {t('customer.copilot')}
-        </div>
-        {copilotSettings.map((s) => (
-          <div key={s.feature} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', minHeight: 44 }}>
-            <Badge color={s.active ? 'green' : 'red'}>{s.value}</Badge>
-            <span style={{ fontWeight: 500, fontSize: 13, minWidth: 160 }}>{s.feature}</span>
-            <span style={{ fontSize: 12, color: 'var(--muted-l)' }}>{s.reason}</span>
-          </div>
-        ))}
-      </Card>
+          <Card>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
+              {t('customer.licenses')}
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 420 }}>
+                <thead>
+                  <tr>
+                    {[t('customer.lic.role'), t('customer.lic.type'), t('customer.lic.cost'), t('customer.lic.note')].map((h) => (
+                      <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: 'var(--border)', color: 'var(--muted-l)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.07em' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {lizenzen.map((l, i) => (
+                    <tr key={l.rolle} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,.02)' : 'transparent' }}>
+                      <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)' }}>{l.rolle}</td>
+                      <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)' }}>{l.typ}</td>
+                      <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>{l.kosten}</td>
+                      <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontSize: 12, color: 'var(--muted-l)' }}>{l.hinweis}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 6, fontSize: 12, color: 'var(--green)' }}>
+              {t('customer.savings')}
+            </div>
+          </Card>
+
+          <Card>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
+              {t('customer.copilot')}
+            </div>
+            {copilotSettings.map((s) => (
+              <div key={s.feature} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', minHeight: 44 }}>
+                <Badge color={s.active ? 'green' : 'red'}>{s.value}</Badge>
+                <span style={{ fontWeight: 500, fontSize: 13, minWidth: 160 }}>{s.feature}</span>
+                <span style={{ fontSize: 12, color: 'var(--muted-l)' }}>{s.reason}</span>
+              </div>
+            ))}
+          </Card>
+        </>
+      )}
     </div>
   )
 }

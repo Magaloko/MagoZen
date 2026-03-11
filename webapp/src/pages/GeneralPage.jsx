@@ -3,6 +3,22 @@ import { Link } from 'react-router-dom'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 
+// ── PA Plans (short version for overview) ────────────────────
+const PA_PLANS_OVERVIEW = [
+  { id: 'free',       name: 'M365 Inklusive', features: ['Standard-Connectors', '6.000 Runs/Mo.', 'Cloud-Flows'] },
+  { id: 'premium',    name: 'Premium',         features: ['Premium-Connectors', 'Unbegrenzt Runs', 'JTL Custom Connector', 'AI Builder'], highlight: true },
+  { id: 'premiumRpa', name: 'Premium + RPA',   features: ['Attended RPA', 'Desktop-Flows', 'UI-Automatisierung'] },
+  { id: 'process',    name: 'Process/Flow',    features: ['Unattended RPA', 'Pro Prozess/Bot', '24/7 Automation'] },
+]
+
+const PA_PROCESS = [
+  { step: '01', title: 'Erstgespräch & Analyse',      desc: 'M365-Lizenz prüfen, Umgebungen planen, Architektur definieren.' },
+  { step: '02', title: 'Umgebungen & Connectors',     desc: 'Dev/Test/Prod anlegen, JTL Custom Connector, DLP-Policies.' },
+  { step: '03', title: 'Flows entwickeln',            desc: '6 Kern-Flows: Bestellung, Retoure, Eskalation, Report, SLA-Warning, Außerhalb-Zeiten.' },
+  { step: '04', title: 'Fehlerbehandlung & Tests',    desc: 'Exception-Handling, Monitor, Error-Alerts, End-to-End-Tests.' },
+  { step: '05', title: 'Schulung & Go-Live',          desc: 'Admin-Schulung 90 Min., Dokumentation, Hypercare 30 Tage.' },
+]
+
 const PLANS = [
   {
     id: 'team',
@@ -214,33 +230,89 @@ export default function GeneralPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 980 }}>
 
-      {/* Hero */}
-      <div style={{ padding: '32px 0 16px' }}>
+      {/* ── Dienst wählen ── */}
+      <div style={{ padding: '32px 0 0' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 10 }}>
+          DADAKAEV_LABS · Neues Projekt starten
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--white)', margin: '0 0 8px', lineHeight: 1.25 }}>
+          Dienst wählen
+        </h1>
+        <p style={{ fontSize: 14, color: 'var(--muted-l)', margin: '0 0 20px', lineHeight: 1.55 }}>
+          Wähle den Dienst, den du für dieses Projekt einrichten möchtest.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 14 }}>
+
+          {/* Zendesk Card */}
+          <Link to="/projects/new?type=zendesk" style={{ textDecoration: 'none' }}>
+            <Card style={{ border: '1px solid var(--green-b)', background: 'rgba(63,207,142,.04)', cursor: 'pointer', transition: 'box-shadow .15s', height: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--green-d)', border: '1px solid var(--green-b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎫</div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--white)' }}>Zendesk Suite</div>
+                  <div style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>ab €55/Agent/Mo.</div>
+                </div>
+                <div style={{ marginLeft: 'auto', padding: '3px 10px', background: 'var(--green)', color: '#fff', fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, borderRadius: 4 }}>EMPFOHLEN</div>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--muted-l)', lineHeight: 1.55, margin: '0 0 14px' }}>
+                Ticket-System, Help Center, JTL-Integration, AI Copilot, SLA-Policies, Makros und E-Mail-Kanal. Vollständiges Setup in 4 Wochen.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {['Zendesk Suite', 'JTL Integration', 'AI Copilot', 'SLA-Policies', 'Help Center'].map(t => (
+                  <span key={t} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, border: '1px solid var(--green-b)', color: 'var(--green)' }}>{t}</span>
+                ))}
+              </div>
+              <div style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--green)', color: '#fff', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 600 }}>
+                + Zendesk Projekt anlegen
+              </div>
+            </Card>
+          </Link>
+
+          {/* Power Automate Card */}
+          <Link to="/projects/new?type=power-automate" style={{ textDecoration: 'none' }}>
+            <Card style={{ border: '1px solid rgba(0,120,212,.3)', background: 'rgba(0,120,212,.04)', cursor: 'pointer', transition: 'box-shadow .15s', height: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(0,120,212,.12)', border: '1px solid rgba(0,120,212,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>⚡</div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--white)' }}>Microsoft Power Automate</div>
+                  <div style={{ fontSize: 12, color: '#0078D4', fontFamily: 'var(--font-mono)' }}>ab €15/User/Mo.</div>
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--muted-l)', lineHeight: 1.55, margin: '0 0 14px' }}>
+                Cloud-Automatisierung mit Microsoft 365. JTL Custom Connector, Teams-Benachrichtigungen, Approval-Flows, Scheduled Reports.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {['Cloud Flows', 'JTL Connector', 'Teams', 'SharePoint', 'Outlook', 'RPA'].map(t => (
+                  <span key={t} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, border: '1px solid rgba(0,120,212,.3)', color: '#0078D4' }}>{t}</span>
+                ))}
+              </div>
+              <div style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: '#0078D4', color: '#fff', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 600 }}>
+                + Power Automate Projekt anlegen
+              </div>
+            </Card>
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Zendesk Hero ── */}
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 28 }}>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 10 }}>
           DADAKAEV_LABS · Zendesk Partner
         </div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--white)', margin: '0 0 12px', lineHeight: 1.25 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--white)', margin: '0 0 12px', lineHeight: 1.25 }}>
           Professionelle Zendesk-Implementierung<br />
           <span style={{ color: 'var(--green)' }}>für E-Commerce & Handel</span>
-        </h1>
-        <p style={{ fontSize: 15, color: 'var(--muted-l)', lineHeight: 1.65, maxWidth: 640, margin: '0 0 24px' }}>
+        </h2>
+        <p style={{ fontSize: 15, color: 'var(--muted-l)', lineHeight: 1.65, maxWidth: 640, margin: '0 0 20px' }}>
           Wir richten Zendesk komplett ein — von der Erstanalyse bis zum Go-Live.
           JTL-Integration, AI Copilot, Makros, SLA-Policies und Schulung inklusive.
         </p>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link
-            to="/projects/new"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 22px', background: 'var(--green)', color: '#fff', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
-          >
-            + Projekt anlegen
-          </Link>
-          <Link
-            to="/"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 22px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted-l)', borderRadius: 'var(--r)', fontSize: 14, textDecoration: 'none' }}
-          >
-            Projekte ansehen
-          </Link>
-        </div>
+        <Link
+          to="/projects/new?type=zendesk"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--green)', color: '#fff', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+        >
+          + Zendesk Projekt starten
+        </Link>
       </div>
 
       {/* Plans */}
@@ -314,6 +386,79 @@ export default function GeneralPage() {
       {/* FAQ */}
       <FaqSection />
 
+      {/* ── Power Automate Section ── */}
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 28 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#0078D4', textTransform: 'uppercase', letterSpacing: '.15em', marginBottom: 10 }}>
+          DADAKAEV_LABS · Microsoft Power Platform Partner
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--white)', margin: '0 0 12px', lineHeight: 1.25 }}>
+          Microsoft Power Automate<br />
+          <span style={{ color: '#0078D4' }}>Workflow-Automatisierung für Ihr Business</span>
+        </h2>
+        <p style={{ fontSize: 15, color: 'var(--muted-l)', lineHeight: 1.65, maxWidth: 640, margin: '0 0 20px' }}>
+          Verbinden Sie JTL-Shop, Zendesk, Teams und SharePoint — vollautomatisch.
+          6 Kern-Flows, Custom Connector, Approval-Workflows und Monitoring in 3 Wochen.
+        </p>
+        <Link
+          to="/projects/new?type=power-automate"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#0078D4', color: '#fff', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+        >
+          + Power Automate Projekt starten
+        </Link>
+      </div>
+
+      {/* PA Plans */}
+      <div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
+          Power Automate Pläne
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 12 }}>
+          {PA_PLANS_OVERVIEW.map((plan) => (
+            <Card
+              key={plan.id}
+              style={{
+                border: plan.highlight ? '1px solid rgba(0,120,212,.4)' : '1px solid var(--border)',
+                background: plan.highlight ? 'rgba(0,120,212,.06)' : 'var(--ink-m)',
+                position: 'relative',
+              }}
+            >
+              {plan.highlight && (
+                <div style={{ position: 'absolute', top: -1, right: 12, padding: '3px 10px', background: '#0078D4', color: '#fff', fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, borderRadius: '0 0 4px 4px' }}>
+                  EMPFOHLEN
+                </div>
+              )}
+              <div style={{ fontWeight: 600, fontSize: 13, color: plan.highlight ? '#60A5FA' : 'var(--white)', marginBottom: 10 }}>{plan.name}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {plan.features.map((f) => (
+                  <div key={f} style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--muted-l)' }}>
+                    <span style={{ color: plan.highlight ? '#0078D4' : 'var(--muted)', flexShrink: 0 }}>✓</span>
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* PA Process */}
+      <div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
+          Power Automate Prozess
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {PA_PROCESS.map((step, i) => (
+            <div key={step.step} style={{ display: 'flex', gap: 16, padding: '16px 0', borderBottom: i < PA_PROCESS.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 700, color: '#0078D4', width: 44, flexShrink: 0, paddingTop: 2 }}>{step.step}</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--white)', marginBottom: 4 }}>{step.title}</div>
+                <div style={{ fontSize: 13, color: 'var(--muted-l)', lineHeight: 1.5 }}>{step.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* CTA */}
       <Card style={{ background: 'var(--green-d)', border: '1px solid var(--green-b)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -326,12 +471,20 @@ export default function GeneralPage() {
               Das System führt durch alle Schritte.
             </div>
           </div>
-          <Link
-            to="/projects/new"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 22px', background: 'var(--green)', color: '#fff', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
-          >
-            + Projekt starten
-          </Link>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', flexShrink: 0 }}>
+            <Link
+              to="/projects/new?type=zendesk"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--green)', color: '#fff', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+            >
+              + Zendesk Projekt
+            </Link>
+            <Link
+              to="/projects/new?type=power-automate"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: '#0078D4', color: '#fff', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+            >
+              + Power Automate
+            </Link>
+          </div>
         </div>
       </Card>
 

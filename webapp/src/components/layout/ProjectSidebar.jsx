@@ -81,7 +81,13 @@ const navStyle = (isActive) => ({
   textDecoration: 'none',
 })
 
-function NavGroup({ group, projectId, isAdmin, membership, t, onClose, openGroups, toggleGroup }) {
+// PA label overrides: key → label
+const PA_LABEL_OVERRIDES = {
+  'nav.macros': 'Flows',
+  'nav.dns': 'Umgebungen',
+}
+
+function NavGroup({ group, projectId, isAdmin, membership, t, onClose, openGroups, toggleGroup, svcType }) {
   const isOpen = openGroups[group.id] ?? group.defaultOpen
 
   // Filter items by role
@@ -95,6 +101,14 @@ function NavGroup({ group, projectId, isAdmin, membership, t, onClose, openGroup
   // Don't render group if no visible items
   if (visibleItems.length === 0) return null
 
+  // Resolve label: PA overrides for specific keys
+  const getLabel = (key) => {
+    if (svcType === 'power-automate' && PA_LABEL_OVERRIDES[key]) {
+      return PA_LABEL_OVERRIDES[key]
+    }
+    return t(key)
+  }
+
   // Single-item groups (like Dashboard) render without header
   if (group.id === 'overview') {
     return (
@@ -104,7 +118,7 @@ function NavGroup({ group, projectId, isAdmin, membership, t, onClose, openGroup
           return (
             <NavLink key={seg} to={to} end={end} onClick={onClose} style={({ isActive }) => ({ ...navStyle(isActive), padding: '9px 12px' })}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
-              {t(key)}
+              {getLabel(key)}
             </NavLink>
           )
         })}
@@ -164,7 +178,7 @@ function NavGroup({ group, projectId, isAdmin, membership, t, onClose, openGroup
           return (
             <NavLink key={seg} to={to} end={end} onClick={onClose} style={({ isActive }) => navStyle(isActive)}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
-              {t(key)}
+              {getLabel(key)}
             </NavLink>
           )
         })}
@@ -180,6 +194,11 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
   const { pathname } = useLocation()
 
   const currentProject = projectId ? projects.find((p) => p.id === projectId) : null
+  const svcType = currentProject?.service_package?.service_type ?? 'zendesk'
+  const isPA = svcType === 'power-automate'
+  const projectAccent = isPA ? '#0078D4' : 'var(--green)'
+  const projectAccentD = isPA ? 'rgba(0,120,212,0.1)' : 'var(--green-d)'
+  const projectAccentB = isPA ? 'rgba(0,120,212,0.35)' : 'var(--green-b)'
 
   // Track open/closed state of each group
   const [openGroups, setOpenGroups] = useState(() => {
@@ -250,12 +269,17 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
             )}
 
             {currentProject && (
-              <div style={{ padding: '8px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 'var(--r)', marginBottom: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--green)', wordBreak: 'break-word' }}>
+              <div style={{ padding: '8px 12px', background: projectAccentD, border: `1px solid ${projectAccentB}`, borderRadius: 'var(--r)', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: projectAccent, wordBreak: 'break-word' }}>
                   {currentProject.name}
                 </div>
-                <div style={{ fontSize: 10, color: STATUS_COLOR[currentProject.status] || 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: 2, textTransform: 'uppercase' }}>
-                  {currentProject.status}
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 10, color: STATUS_COLOR[currentProject.status] || 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+                    {currentProject.status}
+                  </div>
+                  <div style={{ fontSize: 9, color: projectAccent, fontFamily: 'var(--font-mono)', background: projectAccentD, border: `1px solid ${projectAccentB}`, borderRadius: 10, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    {isPA ? '⚡ PA' : '🎯 ZD'}
+                  </div>
                 </div>
               </div>
             )}
@@ -274,6 +298,7 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
                   onClose={onClose}
                   openGroups={openGroups}
                   toggleGroup={toggleGroup}
+                  svcType={svcType}
                 />
               )
             })}

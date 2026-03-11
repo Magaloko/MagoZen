@@ -10,6 +10,9 @@ import Badge from '../components/ui/Badge'
 import ProgressRing from '../components/shared/ProgressRing'
 
 const phaseColors = { green: 'var(--green)', blue: 'var(--blue)', amber: 'var(--amber)', purple: 'var(--purple)' }
+const PA_BLUE = '#0078D4'
+const PA_BLUE_BG = 'rgba(0,120,212,0.1)'
+const PA_BLUE_BORDER = 'rgba(0,120,212,0.35)'
 const STATUS_OPTIONS = [
   { value: 'planning', label: 'Planung' },
   { value: 'active', label: 'Aktiv' },
@@ -33,6 +36,12 @@ export default function Dashboard() {
   const [glChecked] = useProjectState('golive', {}, projectId)
   const [angebotData] = useProjectState('angebot', null, projectId)
   const [showAdminKpis, setShowAdminKpis] = useState(false)
+
+  const svcType = project?.service_package?.service_type ?? 'zendesk'
+  const isPA = svcType === 'power-automate'
+  const accentColor = isPA ? PA_BLUE : 'var(--green)'
+  const accentD = isPA ? PA_BLUE_BG : 'var(--green-d)'
+  const accentB = isPA ? PA_BLUE_BORDER : 'var(--green-b)'
 
   const phases = project?.service_package?.phases || PHASES
   const goliveliste = project?.service_package?.goliveliste || GOLIVELISTE
@@ -102,13 +111,22 @@ export default function Dashboard() {
               style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 6, padding: '4px 10px', outline: 'none', minWidth: 200 }}
             />
           ) : (
-            <span
-              onClick={() => { setNameVal(project?.name || ''); setEditingName(true) }}
-              title="Klick zum Bearbeiten"
-              style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', cursor: 'pointer', borderBottom: '1px dashed var(--border)' }}
-            >
-              {project?.name || 'Projektname'}
-            </span>
+            <>
+              <span
+                onClick={() => { setNameVal(project?.name || ''); setEditingName(true) }}
+                title="Klick zum Bearbeiten"
+                style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', cursor: 'pointer', borderBottom: '1px dashed var(--border)' }}
+              >
+                {project?.name || 'Projektname'}
+              </span>
+              <span style={{
+                padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)',
+                background: accentD, border: `1px solid ${accentB}`, color: accentColor,
+                textTransform: 'uppercase', letterSpacing: '.05em',
+              }}>
+                {isPA ? '⚡ Power Automate' : '🎯 Zendesk'}
+              </span>
+            </>
           )}
 
           {editingShort ? (
@@ -148,8 +166,17 @@ export default function Dashboard() {
       ) : (
         /* Customer view — read-only header */
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)' }}>
-            {project?.name || 'Projekt'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)' }}>
+              {project?.name || 'Projekt'}
+            </div>
+            <span style={{
+              padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)',
+              background: accentD, border: `1px solid ${accentB}`, color: accentColor,
+              textTransform: 'uppercase', letterSpacing: '.05em',
+            }}>
+              {isPA ? '⚡ Power Automate' : '🎯 Zendesk'}
+            </span>
           </div>
           <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
             {project?.status === 'active' ? '● Aktiv' : project?.status?.toUpperCase()}
@@ -276,38 +303,45 @@ export default function Dashboard() {
       {/* Customer + Quick Links */}
       <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <Card>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: accentColor, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
             {t('dashboard.customer')}
           </div>
-          {[
+          {(isPA ? [
+            ['Name', customer.name],
+            ['URL', customer.url],
+            ['E-Mail', customer.email],
+            ['M365 Tenant', customer.m365Tenant],
+            ['M365 Plan', customer.m365Plan],
+            ['Region', customer.powerPlatformRegion],
+          ] : [
             ['Name', customer.name],
             ['URL', customer.url],
             ['E-Mail', customer.email],
             ['Zendesk', customer.zendeskSubdomain],
             ['JTL Shop', customer.jtlShop],
             ['JTL WAWI', customer.jtlWawi],
-          ].map(([k, v]) => v ? (
+          ]).map(([k, v]) => v ? (
             <div key={k} style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
               <span style={{ color: 'var(--muted-l)', minWidth: 80, flexShrink: 0 }}>{k}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', wordBreak: 'break-all' }}>{v}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: accentColor, wordBreak: 'break-all' }}>{v}</span>
             </div>
           ) : null)}
         </Card>
         <Card>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: accentColor, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
             {t('dashboard.quicklinks')}
           </div>
           {[
-            { to: `/projects/${projectId}/phasen`, labelKey: 'dashboard.link.phases', icon: '◈' },
-            { to: `/projects/${projectId}/checkliste`, labelKey: 'dashboard.link.checklist', icon: '✓' },
-            { to: `/projects/${projectId}/makros`, labelKey: 'dashboard.link.macros', icon: '⚡' },
-            { to: `/projects/${projectId}/dns`, labelKey: 'dashboard.link.dns', icon: '◎' },
-            { to: `/projects/${projectId}/faq`, labelKey: 'dashboard.link.faq', icon: '?' },
-            ...(isAdmin ? [{ to: `/projects/${projectId}/intern`, labelKey: 'dashboard.link.intern', icon: '⊙' }] : []),
-          ].map(({ to, labelKey, icon }) => (
+            { to: `/projects/${projectId}/phasen`, label: t('dashboard.link.phases'), icon: '◈' },
+            { to: `/projects/${projectId}/checkliste`, label: t('dashboard.link.checklist'), icon: '✓' },
+            { to: `/projects/${projectId}/makros`, label: isPA ? 'Flows' : t('dashboard.link.macros'), icon: '⚡' },
+            { to: `/projects/${projectId}/dns`, label: isPA ? 'Umgebungen' : t('dashboard.link.dns'), icon: '◎' },
+            { to: `/projects/${projectId}/faq`, label: t('dashboard.link.faq'), icon: '?' },
+            ...(isAdmin ? [{ to: `/projects/${projectId}/intern`, label: t('dashboard.link.intern'), icon: '⊙' }] : []),
+          ].map(({ to, label, icon }) => (
             <Link key={to} to={to} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 13, color: 'var(--muted-l)', textDecoration: 'none', minHeight: 40 }}>
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)', width: 16, textAlign: 'center' }}>{icon}</span>
-              {t(labelKey)}
+              <span style={{ fontFamily: 'var(--font-mono)', color: accentColor, width: 16, textAlign: 'center' }}>{icon}</span>
+              {label}
             </Link>
           ))}
         </Card>

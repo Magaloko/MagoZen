@@ -6,6 +6,11 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import { ZENDESK_PLANS, ADDON_PRICES, calcCost } from '../utils/planUtils'
+import { PA_PLANS, PA_ADDON_PRICES, calcCostPA } from '../utils/paUtils'
+
+const PA_BLUE = '#0078D4'
+const PA_BLUE_BG = 'rgba(0,120,212,0.1)'
+const PA_BLUE_BORDER = 'rgba(0,120,212,0.35)'
 
 const TOGGLEABLE_PAGES = [
   { seg: 'phasen',    label: 'Phasen',         icon: '◈' },
@@ -259,6 +264,213 @@ function PaketKonfig({ project, onSave }) {
   )
 }
 
+// ─── PA Paket-Konfiguration ───────────────────────────────────────────────────
+
+function PAPaketKonfig({ project, onSave }) {
+  const sp = project?.service_package || {}
+
+  const initPAPlanId = () => {
+    const id = sp.plan_id
+    if (id && PA_PLANS.find((p) => p.id === id)) return id
+    const name = (sp.plan || '').toLowerCase()
+    if (name.includes('process')) return 'process'
+    if (name.includes('rpa'))     return 'premiumRpa'
+    if (name.includes('premium')) return 'premium'
+    return 'premium'
+  }
+
+  const [planId, setPlanId]         = useState(initPAPlanId)
+  const [paUsers, setPaUsers]       = useState(sp.pa_users   ?? 3)
+  const [paProcesses, setPaProcesses] = useState(sp.pa_processes ?? 1)
+  const [addons, setAddons]         = useState(sp.addons_pa || {})
+  const [saving, setSaving]         = useState(false)
+  const [saved, setSaved]           = useState(false)
+
+  const plan = PA_PLANS.find((p) => p.id === planId) || PA_PLANS[1]
+  const isProcessPlan = plan.priceModel === 'process'
+  const cost = calcCostPA(planId, paUsers, paProcesses, addons)
+
+  const toggleAddon = (key) => setAddons((prev) => ({ ...prev, [key]: !prev[key] }))
+
+  const handleSave = async () => {
+    setSaving(true)
+    await onSave({
+      plan:                    plan.name,
+      plan_id:                 planId,
+      plan_price_per_user:     plan.priceModel === 'user' ? plan.price : 0,
+      plan_price_per_process:  plan.priceModel === 'process' ? plan.price : 0,
+      pa_users:                paUsers,
+      pa_processes:            paProcesses,
+      addons_pa:               addons,
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const fmt = (n) => `€${n.toLocaleString('de-AT', { minimumFractionDigits: 0 })}`
+
+  return (
+    <Card>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: PA_BLUE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 20 }}>
+        Power Automate Paket-Konfiguration
+      </div>
+
+      {/* Plan selector */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', marginBottom: 10 }}>PA-Lizenzplan</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+          {PA_PLANS.map((p) => {
+            const active = p.id === planId
+            return (
+              <div
+                key={p.id}
+                onClick={() => setPlanId(p.id)}
+                style={{
+                  padding: '12px 14px', borderRadius: 8, cursor: 'pointer', position: 'relative',
+                  border: active ? `2px solid ${PA_BLUE}` : '1px solid var(--border)',
+                  background: active ? PA_BLUE_BG : 'transparent',
+                  transition: 'all .15s',
+                }}
+              >
+                {p.highlight && (
+                  <div style={{ position: 'absolute', top: -8, right: 8, background: PA_BLUE, color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 10, letterSpacing: '.05em', whiteSpace: 'nowrap' }}>
+                    EMPFOHLEN
+                  </div>
+                )}
+                <div style={{ fontWeight: 700, fontSize: 13, color: active ? PA_BLUE : 'var(--white-d)', marginBottom: 2 }}>{p.name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: active ? PA_BLUE : 'var(--muted)', marginBottom: 8 }}>
+                  {p.price === 0 ? 'Kostenlos' : `${fmt(p.price)}/${p.priceModel === 'process' ? 'Prozess' : 'User'}/Mo.`}
+                </div>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                  {p.features.slice(0, 3).map((f) => (
+                    <li key={f} style={{ fontSize: 10, color: 'var(--muted-l)', marginBottom: 2, display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                      <span style={{ color: active ? PA_BLUE : 'var(--border-l)', flexShrink: 0 }}>·</span>{f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* User / Process spinner */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+          {isProcessPlan ? 'Anzahl Prozesse / Bots' : 'Anzahl lizenzierter User'}
+        </div>
+        <SpinnerInput
+          value={isProcessPlan ? paProcesses : paUsers}
+          onChange={isProcessPlan ? setPaProcesses : setPaUsers}
+          min={1}
+          max={isProcessPlan ? 20 : 50}
+        />
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--font-mono)' }}>
+          {isProcessPlan
+            ? 'Process-Plan: Jeder Bot / Prozess wird separat lizenziert'
+            : 'Per-User: Jeder Mitarbeiter der PA-Flows nutzt oder ausführt braucht eine Lizenz'}
+        </div>
+      </div>
+
+      {/* Add-ons */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>Add-ons</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+          {Object.entries(PA_ADDON_PRICES).map(([key, info]) => {
+            const active = !!addons[key]
+            const locked = info.requiresTier > (plan.tier || 1)
+            return (
+              <label
+                key={key}
+                onClick={() => !locked && toggleAddon(key)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px', borderRadius: 6, cursor: locked ? 'not-allowed' : 'pointer',
+                  border: active ? `1px solid ${PA_BLUE_BORDER}` : '1px solid var(--border)',
+                  background: active ? PA_BLUE_BG : locked ? 'rgba(0,0,0,.04)' : 'transparent',
+                  opacity: locked ? 0.6 : 1, transition: 'all .15s', userSelect: 'none',
+                }}
+              >
+                <div style={{
+                  width: 18, height: 18, borderRadius: 3, flexShrink: 0,
+                  border: active ? `2px solid ${PA_BLUE}` : '2px solid var(--border-l)',
+                  background: active ? PA_BLUE : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {active && <span style={{ color: '#fff', fontSize: 10, fontWeight: 700 }}>✓</span>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: active ? 'var(--white-d)' : 'var(--muted-l)', fontWeight: 600 }}>{info.label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    {info.pricePerUser ? `+${fmt(info.pricePerUser)}/User/Mo.` : info.priceFlat ? `+${fmt(info.priceFlat)}/Mo.` : ''}
+                  </div>
+                  {locked && (
+                    <div style={{ fontSize: 10, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>
+                      Erfordert {PA_PLANS.find(p => p.tier === info.requiresTier)?.name || 'höheren Plan'}
+                    </div>
+                  )}
+                </div>
+              </label>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Live cost calculation */}
+      <div style={{ padding: '16px 18px', background: 'var(--ink)', border: `1px solid ${PA_BLUE_BORDER}`, borderRadius: 8, marginBottom: 20 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: PA_BLUE, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12 }}>
+          Live-Kalkulation
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Lizenzen/Mo.</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--white)' }}>
+              {cost.licenseMonthly === 0 ? 'Kostenlos' : fmt(cost.licenseMonthly)}
+            </div>
+          </div>
+          {cost.aiBuilderMonthly > 0 && (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>AI Builder/Mo.</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: PA_BLUE }}>{fmt(cost.aiBuilderMonthly)}</div>
+            </div>
+          )}
+          {cost.rpaMonthly > 0 && (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>RPA Attended/Mo.</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: PA_BLUE }}>{fmt(cost.rpaMonthly)}</div>
+            </div>
+          )}
+          {cost.hostedRpaMonthly > 0 && (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Hosted RPA/Mo.</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: PA_BLUE }}>{fmt(cost.hostedRpaMonthly)}</div>
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Gesamt/Mo.</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: PA_BLUE }}>
+              {cost.totalMonthly === 0 ? 'Kostenlos' : fmt(cost.totalMonthly)}
+            </div>
+          </div>
+          {cost.totalMonthly > 0 && (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Jährlich (–20%)</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--white-d)' }}>{fmt(Math.round(cost.totalYearly))}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="primary" onClick={handleSave} loading={saving} style={{ background: PA_BLUE, borderColor: PA_BLUE }}>
+          {saved ? '✓ Gespeichert' : 'Paket speichern'}
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
 // ─── Member Card ──────────────────────────────────────────────────────────────
 
 function MemberCard({ member, onTogglePage, onToggleAll, onRevoke, onCopied, copied, saving }) {
@@ -387,6 +599,8 @@ function MemberCard({ member, onTogglePage, onToggleAll, onRevoke, onCopied, cop
 export default function ProjectSettingsPage() {
   const { projectId } = useParams()
   const { project, update } = useProject(projectId)
+  const svcType = project?.service_package?.service_type ?? 'zendesk'
+  const isPA = svcType === 'power-automate'
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
@@ -463,10 +677,17 @@ export default function ProjectSettingsPage() {
 
       {/* Paket-Konfiguration */}
       {project && (
-        <PaketKonfig
-          project={project}
-          onSave={(pkg) => update({ service_package: { ...(project.service_package || {}), ...pkg } })}
-        />
+        isPA ? (
+          <PAPaketKonfig
+            project={project}
+            onSave={(pkg) => update({ service_package: { ...(project.service_package || {}), ...pkg } })}
+          />
+        ) : (
+          <PaketKonfig
+            project={project}
+            onSave={(pkg) => update({ service_package: { ...(project.service_package || {}), ...pkg } })}
+          />
+        )
       )}
 
       {/* Invite new member */}
