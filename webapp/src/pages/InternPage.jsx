@@ -11,8 +11,8 @@ const honorarRows = [
 ]
 
 const laufendRows = [
-  { label: 'Zendesk Suite Growth — 4 Lizenzen (optimiert)', sub: '4 × €89 · Light Agents für GF/Lager kostenlos · Jahresabrechnung ~20% günstiger', val: '€356/Mo.' },
-  { label: 'Zendesk Suite Growth — 6 Lizenzen (falls gewünscht)', sub: '6 × €89 · Nicht empfohlen wenn Light Agents möglich', val: '€534/Mo.' },
+  { label: 'Zendesk Suite Team — 4 Lizenzen (optimiert)', sub: '4 × €55 · Light Agents für GF/Lager kostenlos · Jahresabrechnung ~20% günstiger', val: '€220/Mo.' },
+  { label: 'Zendesk Suite Team — 6 Lizenzen (falls gewünscht)', sub: '6 × €55 · Nicht empfohlen wenn Light Agents möglich', val: '€330/Mo.' },
   { label: 'AI Copilot Add-on (optional, später)', sub: '~€50/Agent/Mo. · Erst nach Help Center Aufbau sinnvoll', val: '~€200–300/Mo.' },
   { label: 'WhatsApp Business (wenn aktiviert)', sub: 'Meta-Gebühren · Gesprächsbasiert · Gering bei normalem Volumen', val: 'variabel' },
 ]

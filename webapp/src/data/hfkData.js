@@ -32,7 +32,7 @@ export const KPIS = [
   { label: 'Phasen', value: '5+1', sub: 'inkl. Schulung' },
   { label: 'Go-Live', value: '4 Wo.', sub: 'ab Projektstart' },
   { label: 'Agenten', value: '6', sub: '4 Full + 2 Light' },
-  { label: 'Lizenz/Mo.', value: '€356', sub: 'optimiert' },
+  { label: 'Lizenz/Mo.', value: '€220', sub: 'optimiert' },
 ]
 
 export const GRUPPEN = [
@@ -77,7 +77,7 @@ export const PHASES = [
     tasks: [
       {
         id: 'p1t1',
-        title: 'Zendesk Account + Suite Growth',
+        title: 'Zendesk Account + Suite Team',
         detail: 'Subdomain: herrundfrauklein.zendesk.com · 4–6 Agenten-Lizenzen · Billing klären',
       },
       {
@@ -489,7 +489,7 @@ export const RISKS = [
 ]
 
 export const GOLIVELISTE = [
-  { id: 'gl01', title: 'Zendesk Account aktiv und getestet', sub: '✓ Suite Growth · 6 Agenten eingeloggt' },
+  { id: 'gl01', title: 'Zendesk Account aktiv und getestet', sub: '✓ Suite Team · 6 Agenten eingeloggt' },
   { id: 'gl02', title: 'E-Mail-Kanal vollständig', sub: '✓ SPF + DKIM · Senden + Empfangen getestet' },
   { id: 'gl03', title: 'JTL Integration getestet', sub: '✓ Normal · Möbel · Retoure durchgespielt' },
   { id: 'gl04', title: 'Alle 3 SLA-Policies aktiv', sub: '✓ Standard · Dringend · Möbel/Sperrgut' },
@@ -511,8 +511,8 @@ export const FAQ_HFK = [
   },
   {
     q: 'Was kostet Zendesk monatlich?',
-    a: 'Zendesk zahlen Sie direkt — unabhängig von unserem Projektpreis. Ich empfehle Suite Growth mit 4 Volllizenzen + kostenlose Light Agents für GF und Lager: ca. €356/Mo. Die KI (Copilot) ist als Add-on optional — ca. €50/Agent.',
-    tip: 'Lizenz-Optimierung als Mehrwert positionieren — HFK spart €2.136/Jahr durch 4 statt 6 Volllizenzen.',
+    a: 'Zendesk zahlen Sie direkt — unabhängig von unserem Projektpreis. Ich empfehle Suite Team mit 4 Volllizenzen + kostenlose Light Agents für GF und Lager: ca. €220/Mo. Die KI (Copilot) ist als Add-on optional — ca. €50/Agent.',
+    tip: 'Lizenz-Optimierung als Mehrwert positionieren — HFK spart €1.320/Jahr durch 4 statt 6 Volllizenzen.',
   },
   {
     q: 'Wie lange dauert die Einrichtung?',
@@ -541,16 +541,16 @@ export const FAQ_HFK = [
   },
   {
     q: 'Wir haben gehört dass Zendesk teuer und kompliziert ist.',
-    a: 'Das stimmt für Enterprise-Pakete — nicht für Suite Growth. Suite Growth ist genau für Shops Ihrer Größe gebaut. Und "kompliziert" bezieht sich auf selbst-einrichten. Wir richten alles ein, schulen Ihr Team und Sie starten direkt produktiv.',
+    a: 'Das stimmt für Enterprise-Pakete — nicht für Suite Team. Suite Team ist genau für Shops Ihrer Größe gebaut. Und "kompliziert" bezieht sich auf selbst-einrichten. Wir richten alles ein, schulen Ihr Team und Sie starten direkt produktiv.',
     tip: 'Freshdesk hätte keine native JTL-App — zeigt Kompetenz.',
   },
 ]
 
 export const LIZENZEN = [
-  { rolle: '4 aktive Support-Agenten', typ: 'Suite Growth Full Agent', kosten: '4 × €89 = €356/Mo.', hinweis: 'Vollzugriff, Antworten, Tickets' },
+  { rolle: '4 aktive Support-Agenten', typ: 'Suite Team Full Agent', kosten: '4 × €55 = €220/Mo.', hinweis: 'Vollzugriff, Antworten, Tickets' },
   { rolle: 'GF / Geschäftsführung', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Lesen + interne Kommentare' },
   { rolle: 'Lagerleiter / Logistik', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Lesen + interne Kommentare' },
-  { rolle: 'Verwaltung / Einkauf', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Suite Growth: bis 50 Light Agents gratis' },
+  { rolle: 'Verwaltung / Einkauf', typ: 'Light Agent (kostenlos)', kosten: '€0', hinweis: 'Suite Team: Light Agents inklusive' },
 ]
 
 export const UPSELLS = [
@@ -755,7 +755,7 @@ export const FRAGENKATALOG = [
         id: 'F-02',
         prio: 'KANN',
         text: 'Ist ein Live-Chat auf der Website geplant? Wenn ja, welcher Zeitrahmen?',
-        why: 'Zendesk Web Widget (Chat) ist in Suite Growth inklusive. Wenn HFK das wünscht, kann ich es im gleichen Projekt einrichten — kein separater Auftrag nötig.',
+        why: 'Zendesk Web Widget (Chat) ist in Suite Team inklusive. Wenn HFK das wünscht, kann ich es im gleichen Projekt einrichten — kein separater Auftrag nötig.',
         tip: null,
       },
       {
@@ -769,7 +769,7 @@ export const FRAGENKATALOG = [
         id: 'F-04',
         prio: 'KANN',
         text: 'Haben Sie Interesse an monatlichen Performance-Reports (Volumen, SLA-Compliance, CSAT-Werte)?',
-        why: 'Zendesk Explore (in Suite Growth inklusive) erlaubt detaillierte Dashboards. Wenn gewünscht: ich richte ein Custom Dashboard ein — guter Einstieg für einen Betreuungsvertrag.',
+        why: 'Zendesk Explore (in Suite Team inklusive) erlaubt detaillierte Dashboards. Wenn gewünscht: ich richte ein Custom Dashboard ein — guter Einstieg für einen Betreuungsvertrag.',
         tip: 'Upselling-Ansatz: "Monatlicher Report + Optimierungen für €X/Mo."',
       },
       {
