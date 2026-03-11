@@ -1,6 +1,7 @@
 import { NavLink, Link, useLocation } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import { useProjects } from '../../context/ProjectContext'
+import { useAuth } from '../../context/AuthContext'
 import { LANGUAGES } from '../../i18n/translations'
 
 const PROJECT_NAV = [
@@ -13,9 +14,9 @@ const PROJECT_NAV = [
   { seg: 'kunde',   key: 'nav.customer',   icon: '◇' },
   { seg: 'fragen',  key: 'nav.questions',  icon: '≡' },
   { seg: 'faq',     key: 'nav.faq',        icon: '?' },
-  { seg: 'intern',  key: 'nav.intern',     icon: '⊙' },
+  { seg: 'intern',  key: 'nav.intern',     icon: '⊙', adminOnly: true },
   { seg: 'demo',    key: 'nav.demo',       icon: '▷' },
-  { seg: 'angebot', key: 'nav.angebot',    icon: '€' },
+  { seg: 'angebot', key: 'nav.angebot',    icon: '€', adminOnly: true },
 ]
 
 const STATUS_COLOR = {
@@ -45,9 +46,20 @@ const navStyle = (isActive) => ({
 export default function ProjectSidebar({ projectId, isOpen, onClose }) {
   const { t, lang, switchLang } = useLanguage()
   const { projects } = useProjects()
+  const { isAdmin, isCustomer, membership } = useAuth()
   const { pathname } = useLocation()
 
   const currentProject = projectId ? projects.find((p) => p.id === projectId) : null
+
+  // Filter nav items based on role
+  const visibleNav = PROJECT_NAV.filter(({ seg, adminOnly }) => {
+    if (isAdmin) return true
+    if (adminOnly) return false
+    // Dashboard is always visible for customers
+    if (seg === '') return true
+    // Check visible_pages from membership
+    return (membership?.visible_pages || []).includes(seg)
+  })
 
   return (
     <aside
@@ -95,14 +107,16 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
         {projectId ? (
           /* ── PROJECT MODE ── */
           <>
-            <Link
-              to="/"
-              onClick={onClose}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', fontSize: 12, color: 'var(--muted)', borderBottom: '1px solid var(--border)', marginBottom: 10, textDecoration: 'none' }}
-            >
-              <span style={{ fontFamily: 'var(--font-mono)' }}>←</span>
-              {t('nav.back')}
-            </Link>
+            {isAdmin && (
+              <Link
+                to="/"
+                onClick={onClose}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', fontSize: 12, color: 'var(--muted)', borderBottom: '1px solid var(--border)', marginBottom: 10, textDecoration: 'none' }}
+              >
+                <span style={{ fontFamily: 'var(--font-mono)' }}>←</span>
+                {t('nav.back')}
+              </Link>
+            )}
 
             {currentProject && (
               <div style={{ padding: '8px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 'var(--r)', marginBottom: 10 }}>
@@ -115,7 +129,7 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
               </div>
             )}
 
-            {PROJECT_NAV.map(({ seg, key, icon, end }) => {
+            {visibleNav.map(({ seg, key, icon, end }) => {
               const to = seg ? `/projects/${projectId}/${seg}` : `/projects/${projectId}`
               return (
                 <NavLink
@@ -130,9 +144,25 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
                 </NavLink>
               )
             })}
+
+            {isAdmin && (
+              <NavLink
+                to={`/projects/${projectId}/settings`}
+                onClick={onClose}
+                style={({ isActive }) => ({
+                  ...navStyle(isActive),
+                  marginTop: 8,
+                  borderTop: '1px solid var(--border)',
+                  paddingTop: 12,
+                })}
+              >
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>⚙</span>
+                Einstellungen
+              </NavLink>
+            )}
           </>
         ) : (
-          /* ── GENERAL MODE ── */
+          /* ── GENERAL MODE (admin only) ── */
           <>
             <NavLink to="/" end onClick={onClose} style={({ isActive }) => navStyle(isActive)}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>⌂</span>

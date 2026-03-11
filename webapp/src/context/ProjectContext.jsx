@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from './AuthContext'
 import { CUSTOMER, PHASES, RISKS, DNS_RECORDS, MACROS, GOLIVELISTE, FRAGENKATALOG, DEMO_CHECKLIST, DEMO_MILESTONES, FAQ_HFK, UPSELLS, LIZENZEN } from '../data/hfkData'
 
 const ProjectContext = createContext(null)
@@ -52,6 +53,7 @@ const HFK_SEED = {
 }
 
 export function ProjectProvider({ children }) {
+  const { isAdmin, loading: authLoading } = useAuth()
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [seeded, setSeeded] = useState(false)
@@ -69,10 +71,11 @@ export function ProjectProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    if (authLoading) return
     const init = async () => {
       const data = await loadProjects()
-      // Auto-seed HFK if no projects exist
-      if (data.length === 0 && !seeded) {
+      // Auto-seed HFK if no projects exist (admin only)
+      if (data.length === 0 && !seeded && isAdmin) {
         setSeeded(true)
         const { data: inserted, error } = await supabase
           .from('projects')
@@ -86,7 +89,7 @@ export function ProjectProvider({ children }) {
       setLoading(false)
     }
     init()
-  }, [loadProjects, seeded])
+  }, [loadProjects, seeded, isAdmin, authLoading])
 
   const createProject = async (projectData) => {
     const { data, error } = await supabase

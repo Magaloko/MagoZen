@@ -3,6 +3,7 @@ import { Outlet, useLocation, useMatch } from 'react-router-dom'
 import ProjectSidebar from './ProjectSidebar'
 import { useLanguage } from '../../context/LanguageContext'
 import { useProjects } from '../../context/ProjectContext'
+import { useAuth } from '../../context/AuthContext'
 
 const SEGMENT_TITLE = {
   '':          'title.home',
@@ -23,6 +24,7 @@ const SEGMENT_TITLE = {
 export default function AppLayout() {
   const { pathname } = useLocation()
   const { t } = useLanguage()
+  const { profile, isCustomer, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Detect project route: /projects/:projectId/...
@@ -113,7 +115,27 @@ export default function AppLayout() {
               className="topbar-badge"
               style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', padding: '4px 12px', border: '1px solid var(--border)', borderRadius: 4, whiteSpace: 'nowrap', flexShrink: 0 }}
             >
-              DADAKAEV_LABS
+              {isCustomer ? 'KUNDENPORTAL' : 'DADAKAEV_LABS'}
+            </div>
+          )}
+
+          {/* User info + Logout */}
+          {profile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginLeft: 8 }}>
+              <span style={{ fontSize: 11, color: 'var(--muted-l)', fontFamily: 'var(--font-mono)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {profile.display_name || profile.email}
+              </span>
+              <button
+                onClick={signOut}
+                style={{
+                  padding: '4px 10px', fontSize: 11, fontFamily: 'var(--font-mono)',
+                  background: 'transparent', border: '1px solid var(--border)',
+                  borderRadius: 4, color: 'var(--muted-l)', cursor: 'pointer',
+                  transition: 'all .15s',
+                }}
+              >
+                Abmelden
+              </button>
             </div>
           )}
         </header>
