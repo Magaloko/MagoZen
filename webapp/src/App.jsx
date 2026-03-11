@@ -21,6 +21,7 @@ import FragenPage from './pages/FragenPage'
 import DemoPage from './pages/DemoPage'
 import AngebotPage from './pages/AngebotPage'
 import ProjectSettingsPage from './pages/ProjectSettingsPage'
+import UserManagementPage from './pages/UserManagementPage'
 
 // Redirect component that sends customers to their project
 function HomeRedirect() {
@@ -52,6 +53,7 @@ export default function App() {
                 <Route element={<ProtectedRoute requireAdmin />}>
                   <Route path="general" element={<GeneralPage />} />
                   <Route path="projects/new" element={<NewProjectWizard />} />
+                  <Route path="users" element={<UserManagementPage />} />
                 </Route>
 
                 {/* Project routes — both roles, visibility checked in ProtectedRoute */}
