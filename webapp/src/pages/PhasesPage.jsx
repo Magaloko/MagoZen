@@ -14,12 +14,51 @@ const phaseColors = {
   purple: { badge: 'purple', bar: 'var(--purple)', ring: 'var(--purple)' },
 }
 
-function PhaseBlock({ phase, checked, onToggle, t }) {
+const STATUS_CYCLE = ['erstellt', 'eingetragen', 'funktioniert']
+const STATUS_CONFIG = {
+  erstellt:    { color: 'var(--amber)',  bg: 'var(--amber-d)',  border: 'rgba(245,158,11,.25)', icon: '◯' },
+  eingetragen: { color: 'var(--blue)',   bg: 'rgba(37,99,235,.08)', border: 'rgba(37,99,235,.25)', icon: '◎' },
+  funktioniert:{ color: 'var(--green)',  bg: 'var(--green-d)',  border: 'var(--green-b)', icon: '✓' },
+}
+
+function StatusBadge({ status, onClick }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.erstellt
+  return (
+    <button
+      onClick={onClick}
+      title="Status wechseln"
+      style={{
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        borderRadius: 4,
+        padding: '2px 8px',
+        fontSize: 11,
+        fontFamily: 'var(--font-mono)',
+        fontWeight: 600,
+        color: cfg.color,
+        cursor: 'pointer',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        minHeight: 24,
+      }}
+    >
+      <span>{cfg.icon}</span>
+      <span>{status}</span>
+    </button>
+  )
+}
+
+function PhaseBlock({ phase, checked, onToggle, taskStatus, onCycleStatus, taskFields, onUpdateField, t }) {
   const [open, setOpen] = useState(true)
+  const [openFields, setOpenFields] = useState({})
   const colors = phaseColors[phase.color] || phaseColors.green
   const done = phase.tasks.filter((task) => checked[task.id]).length
   const total = phase.tasks.length
   const pct = Math.round((done / total) * 100)
+
+  const toggleFields = (id) => setOpenFields((prev) => ({ ...prev, [id]: !prev[id] }))
 
   return (
     <Card style={{ overflow: 'hidden', padding: 0 }}>
@@ -47,25 +86,102 @@ function PhaseBlock({ phase, checked, onToggle, t }) {
         <div style={{ padding: '6px 0' }}>
           {phase.tasks.map((task) => {
             const isDone = !!checked[task.id]
+            const hasFields = task.fields && task.fields.length > 0
+            const status = taskStatus[task.id] || 'erstellt'
+            const fieldsOpen = !!openFields[task.id]
+            const canCheck = !hasFields || status === 'funktioniert'
+            const fieldVals = taskFields[task.id] || {}
+
             return (
-              <label key={task.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 18px', cursor: 'pointer', borderBottom: '1px solid var(--border)', background: isDone ? 'rgba(63,207,142,.04)' : 'transparent', transition: 'background .15s', minHeight: 44 }}>
-                <div onClick={() => onToggle(task.id)} style={{ width: 18, height: 18, border: isDone ? '2px solid var(--green)' : '2px solid var(--border-l)', borderRadius: 3, background: isDone ? 'var(--green)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, transition: 'all .15s', cursor: 'pointer' }}>
-                  {isDone && <span style={{ color: 'var(--ink)', fontSize: 11, fontWeight: 700 }}>✓</span>}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: isDone ? 'var(--muted-l)' : 'var(--white-d)', textDecoration: isDone ? 'line-through' : 'none' }}>
-                    {task.title}
-                    {task.pending && <Badge color="amber" style={{ marginLeft: 8, fontSize: 10 }}>{t('phases.pending')}</Badge>}
+              <div key={task.id} style={{ borderBottom: '1px solid var(--border)', background: isDone ? 'rgba(63,207,142,.04)' : 'transparent', transition: 'background .15s' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 18px', minHeight: 44 }}>
+                  {/* Checkbox */}
+                  <div
+                    onClick={() => canCheck && onToggle(task.id)}
+                    title={!canCheck ? 'Status muss "funktioniert" sein' : ''}
+                    style={{
+                      width: 18, height: 18,
+                      border: isDone ? '2px solid var(--green)' : canCheck ? '2px solid var(--border-l)' : '2px solid var(--border)',
+                      borderRadius: 3,
+                      background: isDone ? 'var(--green)' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, marginTop: 2,
+                      transition: 'all .15s',
+                      cursor: canCheck ? 'pointer' : 'not-allowed',
+                      opacity: canCheck ? 1 : 0.4,
+                    }}
+                  >
+                    {isDone && <span style={{ color: 'var(--ink)', fontSize: 11, fontWeight: 700 }}>✓</span>}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3, lineHeight: 1.45 }}>{task.detail}</div>
+
+                  {/* Content */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: isDone ? 'var(--muted-l)' : 'var(--white-d)', textDecoration: isDone ? 'line-through' : 'none' }}>
+                        {task.title}
+                        {task.pending && <Badge color="amber" style={{ marginLeft: 8, fontSize: 10 }}>{t('phases.pending')}</Badge>}
+                      </div>
+                      {hasFields && (
+                        <StatusBadge status={status} onClick={(e) => { e.stopPropagation(); onCycleStatus(task.id) }} />
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, lineHeight: 1.45 }}>{task.detail}</div>
+
+                    {hasFields && (
+                      <button
+                        onClick={() => toggleFields(task.id)}
+                        style={{ marginTop: 6, background: 'transparent', border: `1px solid ${fieldsOpen ? 'var(--green-b)' : 'var(--border)'}`, borderRadius: 4, padding: '3px 10px', fontSize: 11, color: fieldsOpen ? 'var(--green)' : 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--font-mono)', minHeight: 26 }}
+                      >
+                        {fieldsOpen ? '▲ Felder schließen' : '▼ Felder eingeben'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </label>
+
+                {/* Expandable Fields */}
+                {hasFields && fieldsOpen && (
+                  <div style={{ padding: '0 18px 12px 48px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {task.fields.map((field) => (
+                      <div key={field.id}>
+                        <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', marginBottom: 4 }}>{field.label}</div>
+                        <input
+                          type="text"
+                          value={fieldVals[field.id] || ''}
+                          onChange={(e) => onUpdateField(task.id, field.id, e.target.value)}
+                          placeholder={field.placeholder}
+                          style={{
+                            width: '100%',
+                            background: 'var(--ink)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 5,
+                            padding: '6px 10px',
+                            fontSize: 13,
+                            color: 'var(--white)',
+                            fontFamily: 'var(--font-mono)',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {status !== 'funktioniert' && (
+                      <div style={{ fontSize: 11, color: 'var(--amber)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                        ⚠ Aufgabe erst abhakbar wenn Status = "funktioniert"
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )
           })}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: 'var(--muted-l)' }}>{done}/{total} {t('phases.done')}</span>
             {done < total && (
-              <Button size="sm" variant="ghost" onClick={() => phase.tasks.forEach((task) => onToggle(task.id, true))}>
+              <Button size="sm" variant="ghost" onClick={() => phase.tasks.forEach((task) => {
+                const hasFields = task.fields && task.fields.length > 0
+                const status = taskStatus[task.id] || 'erstellt'
+                if (!hasFields || status === 'funktioniert') onToggle(task.id, true)
+              })}>
                 {t('phases.markAll')}
               </Button>
             )}
@@ -82,9 +198,27 @@ function PhaseBlock({ phase, checked, onToggle, t }) {
 export default function PhasesPage() {
   const { t } = useLanguage()
   const [checked, setChecked] = useLocalStorage('hfk-tasks', {})
+  const [taskStatus, setTaskStatus] = useLocalStorage('hfk-task-status', {})
+  const [taskFields, setTaskFields] = useLocalStorage('hfk-task-fields', {})
 
   const handleToggle = (id, forceTrue) => {
     setChecked((prev) => ({ ...prev, [id]: forceTrue !== undefined ? forceTrue : !prev[id] }))
+  }
+
+  const handleCycleStatus = (id) => {
+    setTaskStatus((prev) => {
+      const current = prev[id] || 'erstellt'
+      const idx = STATUS_CYCLE.indexOf(current)
+      const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]
+      return { ...prev, [id]: next }
+    })
+  }
+
+  const handleUpdateField = (taskId, fieldId, value) => {
+    setTaskFields((prev) => ({
+      ...prev,
+      [taskId]: { ...(prev[taskId] || {}), [fieldId]: value },
+    }))
   }
 
   const totalDone = PHASES.flatMap((p) => p.tasks).filter((task) => checked[task.id]).length
@@ -101,7 +235,17 @@ export default function PhasesPage() {
       </div>
 
       {PHASES.map((phase) => (
-        <PhaseBlock key={phase.id} phase={phase} checked={checked} onToggle={handleToggle} t={t} />
+        <PhaseBlock
+          key={phase.id}
+          phase={phase}
+          checked={checked}
+          onToggle={handleToggle}
+          taskStatus={taskStatus}
+          onCycleStatus={handleCycleStatus}
+          taskFields={taskFields}
+          onUpdateField={handleUpdateField}
+          t={t}
+        />
       ))}
     </div>
   )

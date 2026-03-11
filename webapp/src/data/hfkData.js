@@ -79,6 +79,9 @@ export const PHASES = [
         id: 'p1t1',
         title: 'Zendesk Account + Suite Professional',
         detail: 'Subdomain: herrundfrauklein.zendesk.com · 4–6 Agenten-Lizenzen · Billing klären',
+        fields: [
+          { id: 'subdomain', label: 'Zendesk Subdomain', placeholder: 'z.B. herrundfrauklein' },
+        ],
       },
       {
         id: 'p1t2',
@@ -101,11 +104,20 @@ export const PHASES = [
         title: '4 Gruppen anlegen + WhatsApp-Gruppe vorbereiten',
         detail:
           'Mode & Rückgaben · Spielzeug & Tonies · Möbel & Lieferung · Allgemein · WhatsApp (inaktiv)',
+        fields: [
+          { id: 'gruppe1', label: 'Gruppe 1', placeholder: 'z.B. Mode & Rückgaben' },
+          { id: 'gruppe2', label: 'Gruppe 2', placeholder: 'z.B. Spielzeug & Tonies' },
+          { id: 'gruppe3', label: 'Gruppe 3', placeholder: 'z.B. Möbel & Lieferung' },
+          { id: 'gruppe4', label: 'Gruppe 4', placeholder: 'z.B. Allgemein' },
+        ],
       },
       {
         id: 'p1t6',
         title: '6 Agenten anlegen + Gruppen zuweisen',
         detail: 'Rollen definieren · Light Agents für GF/Lager einrichten · Einladungen senden',
+        fields: [
+          { id: 'agent_emails', label: 'Agenten E-Mails', placeholder: 'agent1@firma.de, agent2@firma.de ...' },
+        ],
       },
     ],
   },
@@ -127,6 +139,11 @@ export const PHASES = [
         id: 'p2t2',
         title: 'DNS-Records bei All-inkl eintragen',
         detail: 'SPF + 2x DKIM · Propagation prüfen: dnschecker.org · Typisch unter 30 Min.',
+        fields: [
+          { id: 'spf_record', label: 'SPF Record', placeholder: 'v=spf1 include:mail.zendesk.com ~all' },
+          { id: 'dkim1_key', label: 'DKIM Key 1', placeholder: 'Wert aus Zendesk Admin Center' },
+          { id: 'dkim2_key', label: 'DKIM Key 2', placeholder: 'Wert aus Zendesk Admin Center' },
+        ],
       },
       {
         id: 'p2t3',
@@ -154,17 +171,29 @@ export const PHASES = [
         id: 'p3t1',
         title: 'API-Benutzer in WAWI 1.9.4 anlegen',
         detail: 'Rechte: Bestellungen lesen + Kunden lesen + Artikel lesen · API-Key sichern',
+        fields: [
+          { id: 'wawi_api_user', label: 'API-Benutzername', placeholder: 'z.B. zendesk_api' },
+          { id: 'wawi_api_key', label: 'API-Key', placeholder: 'Langer Token aus WAWI' },
+        ],
       },
       {
         id: 'p3t2',
         title: 'REST API in JTL Shop 5.4.2 aktivieren',
         detail:
           'Plugin aktivieren · Endpoint: herrundfrauklein.com/api/v1 · SSL prüfen · Rate Limits prüfen',
+        fields: [
+          { id: 'shop_api_endpoint', label: 'API Endpoint URL', placeholder: 'z.B. https://herrundfrauklein.com/api/v1' },
+          { id: 'shop_api_token', label: 'API Token', placeholder: 'Token aus JTL Shop Backend' },
+        ],
       },
       {
         id: 'p3t3',
         title: 'Zendesk JTL App aus Marketplace installieren',
         detail: 'Apps & Integrations → Marketplace → "JTL" suchen · API Key + Shop URL · Verbindungstest',
+        fields: [
+          { id: 'jtl_app_key', label: 'App Key', placeholder: 'App Key aus JTL Marketplace' },
+          { id: 'jtl_shop_url', label: 'Shop URL', placeholder: 'z.B. https://herrundfrauklein.com' },
+        ],
       },
       {
         id: 'p3t4',

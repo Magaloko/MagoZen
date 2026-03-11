@@ -12,11 +12,25 @@ export default function Dashboard() {
   const { t } = useLanguage()
   const [checked] = useLocalStorage('hfk-tasks', {})
   const [glChecked] = useLocalStorage('hfk-golive', {})
+  const [angebotData] = useLocalStorage('hfk-angebot', null)
 
   const phaseProgress = PHASES.map((p) => {
     const done = p.tasks.filter((task) => checked[task.id]).length
     const total = p.tasks.length
     return { ...p, done, total, pct: Math.round((done / total) * 100) }
+  })
+
+  // Dynamic honorar from Angebot-Tool
+  const angebotTotal = angebotData
+    ? Object.values(angebotData.phases || {}).reduce((a, v) => a + (Number(v) || 0), 0) +
+      (angebotData.extras || []).reduce((a, e) => a + (Number(e.price) || 0), 0)
+    : null
+
+  const dynamicKpis = KPIS.map((k) => {
+    if (k.label === 'Honorar Techniker' && angebotTotal !== null) {
+      return { ...k, value: `€${angebotTotal.toLocaleString('de')}`, sub: 'Angebot' }
+    }
+    return k
   })
 
   const totalDone = phaseProgress.reduce((a, p) => a + p.done, 0)
@@ -41,11 +55,11 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="kpi-divider" style={{ width: 1, height: 44, background: 'var(--border)', flexShrink: 0 }} />
-        {KPIS.map((k) => (
+        {dynamicKpis.map((k) => (
           <div key={k.label}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: 'var(--green)' }}>{k.value}</div>
             <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginTop: 1 }}>{k.label}</div>
-            <div style={{ fontSize: 10, color: 'var(--muted-l)' }}>{k.sub}</div>
+            <div style={{ fontSize: 10, color: k.sub === 'Angebot' ? 'var(--green)' : 'var(--muted-l)' }}>{k.sub}</div>
           </div>
         ))}
       </div>

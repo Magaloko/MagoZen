@@ -14,6 +14,7 @@ export const TRANSLATIONS = {
     'nav.questions': 'Fragenkatalog',
     'nav.faq': 'Q&A Vorbereitung',
     'nav.intern': 'Intern (Kalkulation)',
+    'nav.angebot': 'Angebot erstellen',
     'sidebar.footer.version': 'v1.0 · März 2025',
     'sidebar.footer.confidential': 'Intern · Vertraulich',
 
@@ -28,6 +29,7 @@ export const TRANSLATIONS = {
     'title.questions': 'Fragenkatalog',
     'title.faq': 'Q&A Vorbereitung',
     'title.intern': 'Intern – Kalkulation',
+    'title.angebot': 'Angebot erstellen',
     'topbar.project': 'Projekt: HFK Zendesk+JTL+Copilot',
 
     // ── Dashboard ────────────────────────────────────────────────────────────
@@ -209,6 +211,7 @@ export const TRANSLATIONS = {
     'nav.questions': 'Question Catalog',
     'nav.faq': 'Q&A Preparation',
     'nav.intern': 'Internal (Calc.)',
+    'nav.angebot': 'Create Quote',
     'sidebar.footer.version': 'v1.0 · March 2025',
     'sidebar.footer.confidential': 'Internal · Confidential',
 
@@ -222,6 +225,7 @@ export const TRANSLATIONS = {
     'title.questions': 'Question Catalog',
     'title.faq': 'Q&A Preparation',
     'title.intern': 'Internal – Calculation',
+    'title.angebot': 'Create Quote',
     'topbar.project': 'Project: HFK Zendesk+JTL+Copilot',
 
     'dashboard.overall': 'Overall Progress',
@@ -392,6 +396,7 @@ export const TRANSLATIONS = {
     'nav.questions': 'Каталог вопросов',
     'nav.faq': 'Подготовка Q&A',
     'nav.intern': 'Внутренний расчёт',
+    'nav.angebot': 'Создать предложение',
     'sidebar.footer.version': 'v1.0 · март 2025',
     'sidebar.footer.confidential': 'Внутренний · Конфиденциально',
 
@@ -405,6 +410,7 @@ export const TRANSLATIONS = {
     'title.questions': 'Каталог вопросов',
     'title.faq': 'Подготовка Q&A',
     'title.intern': 'Внутренний расчёт',
+    'title.angebot': 'Создать предложение',
     'topbar.project': 'Проект: HFK Zendesk+JTL+Copilot',
 
     'dashboard.overall': 'Общий прогресс',

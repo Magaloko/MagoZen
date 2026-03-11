@@ -14,6 +14,7 @@ const NAV = [
   { to: '/faq', key: 'nav.faq', icon: '?' },
   { to: '/intern', key: 'nav.intern', icon: '⊙' },
   { to: '/demo', key: 'nav.demo', icon: '▷' },
+  { to: '/angebot', key: 'nav.angebot', icon: '€' },
 ]
 
 export default function Sidebar({ isOpen, onClose }) {
