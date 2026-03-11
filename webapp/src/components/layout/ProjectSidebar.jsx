@@ -1,22 +1,60 @@
+import { useState } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 import { useProjects } from '../../context/ProjectContext'
 import { useAuth } from '../../context/AuthContext'
 import { LANGUAGES } from '../../i18n/translations'
 
-const PROJECT_NAV = [
-  { seg: '',        key: 'nav.dashboard',  icon: '⊞', end: true },
-  { seg: 'phasen',  key: 'nav.phases',     icon: '◈' },
-  { seg: 'checkliste', key: 'nav.checklist', icon: '✓' },
-  { seg: 'makros',  key: 'nav.macros',     icon: '⚡' },
-  { seg: 'dns',     key: 'nav.dns',        icon: '◎' },
-  { seg: 'risiken', key: 'nav.risks',      icon: '△' },
-  { seg: 'kunde',   key: 'nav.customer',   icon: '◇' },
-  { seg: 'fragen',  key: 'nav.questions',  icon: '≡' },
-  { seg: 'faq',     key: 'nav.faq',        icon: '?' },
-  { seg: 'intern',  key: 'nav.intern',     icon: '⊙', adminOnly: true },
-  { seg: 'demo',    key: 'nav.demo',       icon: '▷' },
-  { seg: 'angebot', key: 'nav.angebot',    icon: '€', adminOnly: true },
+// ── Grouped navigation structure ──
+const NAV_GROUPS = [
+  {
+    id: 'overview',
+    label: 'ÜBERSICHT',
+    defaultOpen: true,
+    items: [
+      { seg: '', key: 'nav.dashboard', icon: '⊞', end: true },
+    ],
+  },
+  {
+    id: 'setup',
+    label: 'SETUP & TECHNIK',
+    defaultOpen: true,
+    items: [
+      { seg: 'phasen', key: 'nav.phases', icon: '◈' },
+      { seg: 'dns', key: 'nav.dns', icon: '◎' },
+      { seg: 'checkliste', key: 'nav.checklist', icon: '✓' },
+    ],
+  },
+  {
+    id: 'content',
+    label: 'INHALTE & VORLAGEN',
+    defaultOpen: true,
+    items: [
+      { seg: 'makros', key: 'nav.macros', icon: '⚡' },
+      { seg: 'faq', key: 'nav.faq', icon: '?' },
+      { seg: 'fragen', key: 'nav.questions', icon: '≡' },
+    ],
+  },
+  {
+    id: 'project',
+    label: 'PROJEKT-INFOS',
+    defaultOpen: true,
+    items: [
+      { seg: 'kunde', key: 'nav.customer', icon: '◇' },
+      { seg: 'risiken', key: 'nav.risks', icon: '△' },
+      { seg: 'demo', key: 'nav.demo', icon: '▷' },
+    ],
+  },
+  {
+    id: 'admin',
+    label: 'INTERN',
+    adminOnly: true,
+    defaultOpen: true,
+    items: [
+      { seg: 'intern', key: 'nav.intern', icon: '⊙', adminOnly: true },
+      { seg: 'angebot', key: 'nav.angebot', icon: '€', adminOnly: true },
+    ],
+  },
 ]
 
 const STATUS_COLOR = {
@@ -30,18 +68,110 @@ const navStyle = (isActive) => ({
   display: 'flex',
   alignItems: 'center',
   gap: 10,
-  padding: '9px 12px',
+  padding: '8px 12px 8px 20px',
   borderRadius: 'var(--r)',
-  marginBottom: 2,
+  marginBottom: 1,
   fontSize: 13,
   fontWeight: isActive ? 600 : 400,
   color: isActive ? 'var(--green)' : 'var(--muted-l)',
   background: isActive ? 'var(--green-d)' : 'transparent',
   border: isActive ? '1px solid var(--green-b)' : '1px solid transparent',
   transition: 'all .15s',
-  minHeight: 40,
+  minHeight: 36,
   textDecoration: 'none',
 })
+
+function NavGroup({ group, projectId, isAdmin, membership, t, onClose, openGroups, toggleGroup }) {
+  const isOpen = openGroups[group.id] ?? group.defaultOpen
+
+  // Filter items by role
+  const visibleItems = group.items.filter(({ seg, adminOnly }) => {
+    if (isAdmin) return true
+    if (adminOnly) return false
+    if (seg === '') return true
+    return (membership?.visible_pages || []).includes(seg)
+  })
+
+  // Don't render group if no visible items
+  if (visibleItems.length === 0) return null
+
+  // Single-item groups (like Dashboard) render without header
+  if (group.id === 'overview') {
+    return (
+      <div style={{ marginBottom: 4 }}>
+        {visibleItems.map(({ seg, key, icon, end }) => {
+          const to = seg ? `/projects/${projectId}/${seg}` : `/projects/${projectId}`
+          return (
+            <NavLink key={seg} to={to} end={end} onClick={onClose} style={({ isActive }) => ({ ...navStyle(isActive), padding: '9px 12px' })}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
+              {t(key)}
+            </NavLink>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginBottom: 4 }}>
+      {/* Category header — clickable to toggle */}
+      <button
+        onClick={() => toggleGroup(group.id)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          width: '100%',
+          padding: '8px 12px 4px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          borderTop: '1px solid var(--border)',
+          marginTop: 6,
+          paddingTop: 10,
+        }}
+      >
+        <span style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          color: 'var(--muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '.08em',
+          flex: 1,
+          textAlign: 'left',
+        }}>
+          {group.label}
+        </span>
+        <span style={{
+          fontSize: 10,
+          color: 'var(--muted)',
+          transition: 'transform .2s',
+          transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+        }}>
+          ▾
+        </span>
+      </button>
+
+      {/* Collapsible items */}
+      <div style={{
+        overflow: 'hidden',
+        maxHeight: isOpen ? visibleItems.length * 44 : 0,
+        opacity: isOpen ? 1 : 0,
+        transition: 'max-height .25s ease, opacity .2s ease',
+      }}>
+        {visibleItems.map(({ seg, key, icon, end }) => {
+          const to = seg ? `/projects/${projectId}/${seg}` : `/projects/${projectId}`
+          return (
+            <NavLink key={seg} to={to} end={end} onClick={onClose} style={({ isActive }) => navStyle(isActive)}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
+              {t(key)}
+            </NavLink>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function ProjectSidebar({ projectId, isOpen, onClose }) {
   const { t, lang, switchLang } = useLanguage()
@@ -51,21 +181,22 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
 
   const currentProject = projectId ? projects.find((p) => p.id === projectId) : null
 
-  // Filter nav items based on role
-  const visibleNav = PROJECT_NAV.filter(({ seg, adminOnly }) => {
-    if (isAdmin) return true
-    if (adminOnly) return false
-    // Dashboard is always visible for customers
-    if (seg === '') return true
-    // Check visible_pages from membership
-    return (membership?.visible_pages || []).includes(seg)
+  // Track open/closed state of each group
+  const [openGroups, setOpenGroups] = useState(() => {
+    const initial = {}
+    NAV_GROUPS.forEach(g => { initial[g.id] = g.defaultOpen })
+    return initial
   })
+
+  const toggleGroup = (id) => {
+    setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
   return (
     <aside
       className={`app-sidebar${isOpen ? ' sidebar-open' : ''}`}
       style={{
-        width: 240,
+        width: 280,
         background: 'var(--ink)',
         borderRight: '1px solid var(--border)',
         display: 'flex',
@@ -83,7 +214,7 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
       <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>
-            DADAKAEV_LABS
+            {isCustomer ? 'KUNDENPORTAL' : 'DADAKAEV_LABS'}
           </div>
           {currentProject ? (
             <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -105,13 +236,13 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
 
       <nav style={{ padding: '10px 8px', flex: 1 }}>
         {projectId ? (
-          /* ── PROJECT MODE ── */
+          /* ── PROJECT MODE — Grouped Navigation ── */
           <>
             {isAdmin && (
               <Link
                 to="/"
                 onClick={onClose}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', fontSize: 12, color: 'var(--muted)', borderBottom: '1px solid var(--border)', marginBottom: 10, textDecoration: 'none' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', fontSize: 12, color: 'var(--muted)', borderBottom: '1px solid var(--border)', marginBottom: 8, textDecoration: 'none' }}
               >
                 <span style={{ fontFamily: 'var(--font-mono)' }}>←</span>
                 {t('nav.back')}
@@ -119,8 +250,8 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
             )}
 
             {currentProject && (
-              <div style={{ padding: '8px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 'var(--r)', marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 'var(--r)', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--green)', wordBreak: 'break-word' }}>
                   {currentProject.name}
                 </div>
                 <div style={{ fontSize: 10, color: STATUS_COLOR[currentProject.status] || 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: 2, textTransform: 'uppercase' }}>
@@ -129,19 +260,21 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
               </div>
             )}
 
-            {visibleNav.map(({ seg, key, icon, end }) => {
-              const to = seg ? `/projects/${projectId}/${seg}` : `/projects/${projectId}`
+            {NAV_GROUPS.map(group => {
+              // Skip admin-only groups for customers
+              if (group.adminOnly && !isAdmin) return null
               return (
-                <NavLink
-                  key={seg}
-                  to={to}
-                  end={end}
-                  onClick={onClose}
-                  style={({ isActive }) => navStyle(isActive)}
-                >
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
-                  {t(key)}
-                </NavLink>
+                <NavGroup
+                  key={group.id}
+                  group={group}
+                  projectId={projectId}
+                  isAdmin={isAdmin}
+                  membership={membership}
+                  t={t}
+                  onClose={onClose}
+                  openGroups={openGroups}
+                  toggleGroup={toggleGroup}
+                />
               )
             })}
 
@@ -151,6 +284,7 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
                 onClick={onClose}
                 style={({ isActive }) => ({
                   ...navStyle(isActive),
+                  padding: '9px 12px',
                   marginTop: 8,
                   borderTop: '1px solid var(--border)',
                   paddingTop: 12,
@@ -162,13 +296,13 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
             )}
           </>
         ) : (
-          /* ── GENERAL MODE (admin only) ── */
+          /* ── GENERAL MODE (admin home) ── */
           <>
-            <NavLink to="/" end onClick={onClose} style={({ isActive }) => navStyle(isActive)}>
+            <NavLink to="/" end onClick={onClose} style={({ isActive }) => ({ ...navStyle(isActive), padding: '9px 12px' })}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>⌂</span>
               {t('nav.home')}
             </NavLink>
-            <NavLink to="/general" onClick={onClose} style={({ isActive }) => navStyle(isActive)}>
+            <NavLink to="/general" onClick={onClose} style={({ isActive }) => ({ ...navStyle(isActive), padding: '9px 12px' })}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>◇</span>
               {t('nav.general')}
             </NavLink>
@@ -184,7 +318,7 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
                   key={p.id}
                   to={`/projects/${p.id}`}
                   onClick={onClose}
-                  style={navStyle(isActive)}
+                  style={() => ({ ...navStyle(isActive), padding: '9px 12px' })}
                 >
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, width: 18, textAlign: 'center', flexShrink: 0, color: STATUS_COLOR[p.status] || 'var(--muted)' }}>●</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useProject } from '../context/ProjectContext'
 import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 import { PHASES, KPIS, CUSTOMER, GOLIVELISTE } from '../data/hfkData'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
@@ -16,10 +17,14 @@ const STATUS_OPTIONS = [
   { value: 'completed', label: 'Abgeschlossen' },
 ]
 
+// KPIs that contain sensitive time/cost data — admin only
+const ADMIN_ONLY_KPI_LABELS = ['Honorar Techniker', 'Stundenaufwand', 'Lizenz/Mo.']
+
 export default function Dashboard() {
   const { projectId } = useParams()
   const { project, update, loading } = useProject(projectId)
   const { t } = useLanguage()
+  const { isAdmin } = useAuth()
   const [editingName, setEditingName] = useState(false)
   const [editingShort, setEditingShort] = useState(false)
   const [nameVal, setNameVal] = useState('')
@@ -27,6 +32,7 @@ export default function Dashboard() {
   const [checked] = useProjectState('tasks', {}, projectId)
   const [glChecked] = useProjectState('golive', {}, projectId)
   const [angebotData] = useProjectState('angebot', null, projectId)
+  const [showAdminKpis, setShowAdminKpis] = useState(false)
 
   const phases = project?.service_package?.phases || PHASES
   const goliveliste = project?.service_package?.goliveliste || GOLIVELISTE
@@ -50,6 +56,9 @@ export default function Dashboard() {
     }
     return k
   })
+
+  // Filter KPIs — sensitive ones only in toggle area, never in main strip
+  const visibleKpis = dynamicKpis.filter(k => !ADMIN_ONLY_KPI_LABELS.includes(k.label))
 
   const totalDone = phaseProgress.reduce((a, p) => a + p.done, 0)
   const totalTasks = phaseProgress.reduce((a, p) => a + p.total, 0)
@@ -80,61 +89,73 @@ export default function Dashboard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Editable project header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        {editingName ? (
-          <input
-            autoFocus
-            value={nameVal}
-            onChange={(e) => setNameVal(e.target.value)}
-            onBlur={saveName}
-            onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
-            style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 6, padding: '4px 10px', outline: 'none', minWidth: 200 }}
-          />
-        ) : (
-          <span
-            onClick={() => { setNameVal(project?.name || ''); setEditingName(true) }}
-            title="Klick zum Bearbeiten"
-            style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', cursor: 'pointer', borderBottom: '1px dashed var(--border)' }}
+      {/* Editable project header — admin only */}
+      {isAdmin ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          {editingName ? (
+            <input
+              autoFocus
+              value={nameVal}
+              onChange={(e) => setNameVal(e.target.value)}
+              onBlur={saveName}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
+              style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 6, padding: '4px 10px', outline: 'none', minWidth: 200 }}
+            />
+          ) : (
+            <span
+              onClick={() => { setNameVal(project?.name || ''); setEditingName(true) }}
+              title="Klick zum Bearbeiten"
+              style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)', cursor: 'pointer', borderBottom: '1px dashed var(--border)' }}
+            >
+              {project?.name || 'Projektname'}
+            </span>
+          )}
+
+          {editingShort ? (
+            <input
+              autoFocus
+              value={shortVal}
+              onChange={(e) => setShortVal(e.target.value)}
+              onBlur={saveShort}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveShort(); if (e.key === 'Escape') setEditingShort(false) }}
+              style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--muted-l)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 4, padding: '3px 8px', outline: 'none', width: 80 }}
+            />
+          ) : (
+            <span
+              onClick={() => { setShortVal(project?.short_name || ''); setEditingShort(true) }}
+              title="Kürzel bearbeiten"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', padding: '3px 8px', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
+            >
+              {project?.short_name || '—'}
+            </span>
+          )}
+
+          <select
+            value={project?.status || 'planning'}
+            onChange={(e) => changeStatus(e.target.value)}
+            style={{
+              fontFamily: 'var(--font-mono)', fontSize: 11, padding: '4px 8px',
+              borderRadius: 4, border: '1px solid var(--border)', cursor: 'pointer', outline: 'none',
+              background: project?.status === 'active' ? 'var(--green-d)' : 'var(--ink-m)',
+              color: project?.status === 'active' ? 'var(--green)' : 'var(--muted-l)',
+            }}
           >
-            {project?.name || 'Projektname'}
-          </span>
-        )}
+            {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
 
-        {editingShort ? (
-          <input
-            autoFocus
-            value={shortVal}
-            onChange={(e) => setShortVal(e.target.value)}
-            onBlur={saveShort}
-            onKeyDown={(e) => { if (e.key === 'Enter') saveShort(); if (e.key === 'Escape') setEditingShort(false) }}
-            style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--muted-l)', background: 'var(--ink)', border: '1px solid var(--green-b)', borderRadius: 4, padding: '3px 8px', outline: 'none', width: 80 }}
-          />
-        ) : (
-          <span
-            onClick={() => { setShortVal(project?.short_name || ''); setEditingShort(true) }}
-            title="Kürzel bearbeiten"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', padding: '3px 8px', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
-          >
-            {project?.short_name || '—'}
-          </span>
-        )}
-
-        <select
-          value={project?.status || 'planning'}
-          onChange={(e) => changeStatus(e.target.value)}
-          style={{
-            fontFamily: 'var(--font-mono)', fontSize: 11, padding: '4px 8px',
-            borderRadius: 4, border: '1px solid var(--border)', cursor: 'pointer', outline: 'none',
-            background: project?.status === 'active' ? 'var(--green-d)' : 'var(--ink-m)',
-            color: project?.status === 'active' ? 'var(--green)' : 'var(--muted-l)',
-          }}
-        >
-          {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-
-        <span style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>✎ klick zum bearbeiten</span>
-      </div>
+          <span style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>✎ klick zum bearbeiten</span>
+        </div>
+      ) : (
+        /* Customer view — read-only header */
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--white)' }}>
+            {project?.name || 'Projekt'}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
+            {project?.status === 'active' ? '● Aktiv' : project?.status?.toUpperCase()}
+          </div>
+        </div>
+      )}
 
       {/* Hero KPI Strip */}
       <div style={{ background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 8, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -148,15 +169,63 @@ export default function Dashboard() {
             <div style={{ fontSize: 12, color: 'var(--muted-l)', marginTop: 2 }}>{t('dashboard.golive')}: {glDone} / {goliveliste.length} {t('dashboard.checks')}</div>
           </div>
         </div>
-        <div className="kpi-divider" style={{ width: 1, height: 44, background: 'var(--border)', flexShrink: 0 }} />
-        {dynamicKpis.map((k) => (
-          <div key={k.label}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: 'var(--green)' }}>{k.value}</div>
-            <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginTop: 1 }}>{k.label}</div>
-            <div style={{ fontSize: 10, color: k.sub === 'Angebot' ? 'var(--green)' : 'var(--muted-l)' }}>{k.sub}</div>
-          </div>
-        ))}
+
+        {visibleKpis.length > 0 && (
+          <>
+            <div className="kpi-divider" style={{ width: 1, height: 44, background: 'var(--border)', flexShrink: 0 }} />
+            {visibleKpis.map((k) => (
+              <div key={k.label}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: 'var(--green)' }}>{k.value}</div>
+                <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginTop: 1 }}>{k.label}</div>
+                <div style={{ fontSize: 10, color: k.sub === 'Angebot' ? 'var(--green)' : 'var(--muted-l)' }}>{k.sub}</div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Admin toggle for sensitive KPIs */}
+        {isAdmin && (
+          <button
+            onClick={() => setShowAdminKpis(prev => !prev)}
+            style={{
+              marginLeft: 'auto',
+              padding: '4px 10px',
+              fontSize: 10,
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--muted)',
+              background: showAdminKpis ? 'var(--green-d)' : 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: 4,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {showAdminKpis ? '◉ Zeiten ausblenden' : '○ Zeiten einblenden'}
+          </button>
+        )}
       </div>
+
+      {/* Admin-only: Time details (toggled) */}
+      {isAdmin && showAdminKpis && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gap: 10,
+        }}>
+          {dynamicKpis.filter(k => ADMIN_ONLY_KPI_LABELS.includes(k.label)).map(k => (
+            <div key={k.label} style={{
+              padding: '12px 14px',
+              background: 'var(--ink-m)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+            }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--green)' }}>{k.value}</div>
+              <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginTop: 2 }}>{k.label}</div>
+              <div style={{ fontSize: 10, color: k.sub === 'Angebot' ? 'var(--green)' : 'var(--muted-l)' }}>{k.sub}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pending alerts */}
       {pending.length > 0 && (
@@ -193,7 +262,10 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: 'var(--muted-l)' }}>
                   <span>{p.done}/{p.total} {t('dashboard.tasks')}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)' }}>~{p.hours}h</span>
+                  {/* Hours only visible to admin when toggled */}
+                  {isAdmin && showAdminKpis && (
+                    <span style={{ fontFamily: 'var(--font-mono)' }}>~{p.hours}h</span>
+                  )}
                 </div>
               </Card>
             </Link>
@@ -231,7 +303,7 @@ export default function Dashboard() {
             { to: `/projects/${projectId}/makros`, labelKey: 'dashboard.link.macros', icon: '⚡' },
             { to: `/projects/${projectId}/dns`, labelKey: 'dashboard.link.dns', icon: '◎' },
             { to: `/projects/${projectId}/faq`, labelKey: 'dashboard.link.faq', icon: '?' },
-            { to: `/projects/${projectId}/intern`, labelKey: 'dashboard.link.intern', icon: '⊙' },
+            ...(isAdmin ? [{ to: `/projects/${projectId}/intern`, labelKey: 'dashboard.link.intern', icon: '⊙' }] : []),
           ].map(({ to, labelKey, icon }) => (
             <Link key={to} to={to} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 13, color: 'var(--muted-l)', textDecoration: 'none', minHeight: 40 }}>
               <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)', width: 16, textAlign: 'center' }}>{icon}</span>

@@ -8,6 +8,7 @@ export default function ProtectedRoute({ requireAdmin = false }) {
   const location = useLocation()
   const { projectId } = useParams()
 
+  // Still loading auth state
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
@@ -17,8 +18,17 @@ export default function ProtectedRoute({ requireAdmin = false }) {
   }
 
   // Not logged in → redirect to login
-  if (!user || !profile) {
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // User exists but profile not loaded yet — show loading (don't redirect!)
+  if (!profile) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+        Profil wird geladen...
+      </div>
+    )
   }
 
   // Route requires admin but user is customer
@@ -26,7 +36,7 @@ export default function ProtectedRoute({ requireAdmin = false }) {
     if (isCustomer && membership?.project_id) {
       return <Navigate to={`/projects/${membership.project_id}`} replace />
     }
-    return <Navigate to="/login" replace />
+    return <Navigate to="/" replace />
   }
 
   // Customer on a project page → check page visibility

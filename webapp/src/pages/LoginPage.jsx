@@ -1,32 +1,50 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 
 export default function LoginPage() {
-  const { signIn } = useAuth()
+  const { signIn, user, profile, loading } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+  // Redirect when user + profile are loaded (after login or already logged in)
+  useEffect(() => {
+    if (!loading && user && profile) {
+      console.log('[Login] Redirecting to / — user:', user.email, 'role:', profile.role)
+      navigate('/', { replace: true })
+    }
+  }, [loading, user, profile, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
+    setSubmitting(true)
     try {
       await signIn(email, password)
-      // AuthContext will load profile, then App redirects based on role
-      navigate('/', { replace: true })
+      // Don't navigate here! useEffect above will redirect once profile loads.
     } catch (err) {
-      setError(err.message === 'Invalid login credentials'
-        ? 'E-Mail oder Passwort falsch.'
-        : err.message)
-    } finally {
-      setLoading(false)
+      console.error('[Login] Error:', err.message)
+      setError(
+        err.message === 'Invalid login credentials'
+          ? 'E-Mail oder Passwort falsch.'
+          : err.message
+      )
+      setSubmitting(false)
     }
+  }
+
+  // If already logged in, show loading while redirect happens
+  if (!loading && user && profile) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <div style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>Weiterleitung...</div>
+      </div>
+    )
   }
 
   return (
@@ -97,8 +115,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" variant="primary" loading={loading} style={{ width: '100%', justifyContent: 'center' }}>
-              Anmelden
+            <Button type="submit" variant="primary" loading={submitting} style={{ width: '100%', justifyContent: 'center' }}>
+              {submitting ? 'Wird angemeldet...' : 'Anmelden'}
             </Button>
           </form>
 
