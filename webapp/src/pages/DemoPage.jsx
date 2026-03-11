@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { DEMO_CHECKLIST, DEMO_MILESTONES } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
 
 // ── Typ config ────────────────────────────────────────────────────────────────
@@ -22,14 +24,19 @@ const CAT_ICON = {
 }
 
 export default function DemoPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
-  const [received, setReceived] = useLocalStorage('hfk-demo-received', {})
-  const [milestoneStatus, setMilestoneStatus] = useLocalStorage('hfk-demo-milestones', {})
+  const [received, setReceived] = useProjectState('demo-received', {}, projectId)
+  const [milestoneStatus, setMilestoneStatus] = useProjectState('demo-milestones', {}, projectId)
+
+  const demoChecklist = project?.service_package?.demo_checklist || DEMO_CHECKLIST
+  const demoMilestones = project?.service_package?.demo_milestones || DEMO_MILESTONES
   const [openJtl, setOpenJtl] = useState(null)
   const [showIntern, setShowIntern] = useState({})
 
   const totalReceived = Object.values(received).filter(Boolean).length
-  const blocking = DEMO_CHECKLIST.filter((i) => i.blocking)
+  const blocking = demoChecklist.filter((i) => i.blocking)
   const blockingDone = blocking.filter((i) => received[i.id]).length
 
   const toggleReceived = (id) => setReceived((p) => ({ ...p, [id]: !p[id] }))
@@ -55,7 +62,7 @@ export default function DemoPage() {
   })[s] || s
 
   // Group checklist by category
-  const cats = [...new Set(DEMO_CHECKLIST.map((i) => i.cat))]
+  const cats = [...new Set(demoChecklist.map((i) => i.cat))]
 
   return (
     <div style={{ maxWidth: 900 }}>
@@ -74,10 +81,10 @@ export default function DemoPage() {
       <div style={{ marginBottom: 24, display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ background: 'var(--border)', borderRadius: 4, height: 6, overflow: 'hidden', marginBottom: 5 }}>
-            <div style={{ width: `${(totalReceived / DEMO_CHECKLIST.length) * 100}%`, height: '100%', background: 'var(--green)', borderRadius: 4, transition: 'width .3s' }} />
+            <div style={{ width: `${demoChecklist.length > 0 ? (totalReceived / demoChecklist.length) * 100 : 0}%`, height: '100%', background: 'var(--green)', borderRadius: 4, transition: 'width .3s' }} />
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-            {totalReceived}/{DEMO_CHECKLIST.length} {t('demo.progress')}
+            {totalReceived}/{demoChecklist.length} {t('demo.progress')}
           </div>
         </div>
         <div style={{ padding: '6px 14px', background: blockingDone === blocking.length ? 'var(--green-d)' : 'rgba(239,68,68,.08)', border: `1px solid ${blockingDone === blocking.length ? 'var(--green-b)' : 'rgba(239,68,68,.25)'}`, borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-mono)', color: blockingDone === blocking.length ? 'var(--green)' : 'var(--red)' }}>
@@ -93,7 +100,7 @@ export default function DemoPage() {
         <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>{t('demo.checklist.sub')}</p>
 
         {cats.map((cat) => {
-          const items = DEMO_CHECKLIST.filter((i) => i.cat === cat)
+          const items = demoChecklist.filter((i) => i.cat === cat)
           const catLabel = items[0].catLabel
           return (
             <div key={cat} style={{ marginBottom: 16 }}>
@@ -194,7 +201,7 @@ export default function DemoPage() {
           <div style={{ position: 'absolute', left: 18, top: 22, bottom: 22, width: 2, background: 'var(--border)', zIndex: 0 }} />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {DEMO_MILESTONES.map((m, idx) => {
+            {demoMilestones.map((m, idx) => {
               const cfg = TYP[m.typ]
               const status = milestoneStatus[m.id] || 'pending'
               const sCfg = statusColors[status]
@@ -206,7 +213,7 @@ export default function DemoPage() {
                   {/* Timeline dot */}
                   <div style={{ width: 38, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, paddingTop: 12 }}>
                     <div style={{ width: 16, height: 16, borderRadius: '50%', background: isDone ? 'var(--green)' : cfg.color, border: `2px solid ${isDone ? 'var(--green)' : cfg.border}`, boxShadow: `0 0 0 3px ${isDone ? 'var(--green-d)' : cfg.bg}`, transition: 'all .2s' }} />
-                    {idx < DEMO_MILESTONES.length - 1 && (
+                    {idx < demoMilestones.length - 1 && (
                       <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--muted)', marginTop: 4, writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.05em' }}>
                         {m.phaseLabel}
                       </div>

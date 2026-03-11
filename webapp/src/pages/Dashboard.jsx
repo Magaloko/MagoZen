@@ -1,23 +1,30 @@
-import { PHASES, KPIS, CUSTOMER, GOLIVELISTE } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useParams, Link } from 'react-router-dom'
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
+import { PHASES, KPIS, CUSTOMER, GOLIVELISTE } from '../data/hfkData'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import ProgressRing from '../components/shared/ProgressRing'
-import { Link } from 'react-router-dom'
 
 const phaseColors = { green: 'var(--green)', blue: 'var(--blue)', amber: 'var(--amber)', purple: 'var(--purple)' }
 
 export default function Dashboard() {
+  const { projectId } = useParams()
+  const { project, loading } = useProject(projectId)
   const { t } = useLanguage()
-  const [checked] = useLocalStorage('hfk-tasks', {})
-  const [glChecked] = useLocalStorage('hfk-golive', {})
-  const [angebotData] = useLocalStorage('hfk-angebot', null)
+  const [checked] = useProjectState('tasks', {}, projectId)
+  const [glChecked] = useProjectState('golive', {}, projectId)
+  const [angebotData] = useProjectState('angebot', null, projectId)
 
-  const phaseProgress = PHASES.map((p) => {
-    const done = p.tasks.filter((task) => checked[task.id]).length
-    const total = p.tasks.length
-    return { ...p, done, total, pct: Math.round((done / total) * 100) }
+  const phases = project?.service_package?.phases || PHASES
+  const goliveliste = project?.service_package?.goliveliste || GOLIVELISTE
+  const customer = project?.customer_data || CUSTOMER
+
+  const phaseProgress = phases.map((p) => {
+    const done = (p.tasks || []).filter((task) => checked[task.id]).length
+    const total = (p.tasks || []).length
+    return { ...p, done, total, pct: total > 0 ? Math.round((done / total) * 100) : 0 }
   })
 
   // Dynamic honorar from Angebot-Tool
@@ -35,9 +42,13 @@ export default function Dashboard() {
 
   const totalDone = phaseProgress.reduce((a, p) => a + p.done, 0)
   const totalTasks = phaseProgress.reduce((a, p) => a + p.total, 0)
-  const overallPct = Math.round((totalDone / totalTasks) * 100)
-  const glDone = GOLIVELISTE.filter((g) => glChecked[g.id]).length
-  const pending = GOLIVELISTE.filter((g) => g.pending && !glChecked[g.id])
+  const overallPct = totalTasks > 0 ? Math.round((totalDone / totalTasks) * 100) : 0
+  const glDone = goliveliste.filter((g) => glChecked[g.id]).length
+  const pending = goliveliste.filter((g) => g.pending && !glChecked[g.id])
+
+  if (loading) {
+    return <div style={{ padding: 40, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>Loading...</div>
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -51,7 +62,7 @@ export default function Dashboard() {
               {t('dashboard.overall')}
             </div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>{totalDone} / {totalTasks} {t('dashboard.tasks')}</div>
-            <div style={{ fontSize: 12, color: 'var(--muted-l)', marginTop: 2 }}>{t('dashboard.golive')}: {glDone} / {GOLIVELISTE.length} {t('dashboard.checks')}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted-l)', marginTop: 2 }}>{t('dashboard.golive')}: {glDone} / {goliveliste.length} {t('dashboard.checks')}</div>
           </div>
         </div>
         <div className="kpi-divider" style={{ width: 1, height: 44, background: 'var(--border)', flexShrink: 0 }} />
@@ -72,7 +83,7 @@ export default function Dashboard() {
             <strong>{t('dashboard.pending')}:</strong>{' '}
             {pending.map((p) => p.title).join(' · ')}
           </span>
-          <Link to="/checkliste" style={{ color: 'var(--amber)', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
+          <Link to={`/projects/${projectId}/checkliste`} style={{ color: 'var(--amber)', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
             {t('dashboard.toChecklist')}
           </Link>
         </div>
@@ -85,7 +96,7 @@ export default function Dashboard() {
         </div>
         <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 10 }}>
           {phaseProgress.map((p) => (
-            <Link key={p.id} to="/phasen" style={{ textDecoration: 'none' }}>
+            <Link key={p.id} to={`/projects/${projectId}/phasen`} style={{ textDecoration: 'none' }}>
               <Card style={{ cursor: 'pointer' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div>
@@ -114,30 +125,30 @@ export default function Dashboard() {
             {t('dashboard.customer')}
           </div>
           {[
-            ['Name', CUSTOMER.name],
-            ['URL', CUSTOMER.url],
-            ['E-Mail', CUSTOMER.email],
-            ['Zendesk', CUSTOMER.zendeskSubdomain],
-            ['JTL Shop', CUSTOMER.jtlShop],
-            ['JTL WAWI', CUSTOMER.jtlWawi],
-          ].map(([k, v]) => (
+            ['Name', customer.name],
+            ['URL', customer.url],
+            ['E-Mail', customer.email],
+            ['Zendesk', customer.zendeskSubdomain],
+            ['JTL Shop', customer.jtlShop],
+            ['JTL WAWI', customer.jtlWawi],
+          ].map(([k, v]) => v ? (
             <div key={k} style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
               <span style={{ color: 'var(--muted-l)', minWidth: 80, flexShrink: 0 }}>{k}</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', wordBreak: 'break-all' }}>{v}</span>
             </div>
-          ))}
+          ) : null)}
         </Card>
         <Card>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
             {t('dashboard.quicklinks')}
           </div>
           {[
-            { to: '/phasen', labelKey: 'dashboard.link.phases', icon: '◈' },
-            { to: '/checkliste', labelKey: 'dashboard.link.checklist', icon: '✓' },
-            { to: '/makros', labelKey: 'dashboard.link.macros', icon: '⚡' },
-            { to: '/dns', labelKey: 'dashboard.link.dns', icon: '◎' },
-            { to: '/faq', labelKey: 'dashboard.link.faq', icon: '?' },
-            { to: '/intern', labelKey: 'dashboard.link.intern', icon: '⊙' },
+            { to: `/projects/${projectId}/phasen`, labelKey: 'dashboard.link.phases', icon: '◈' },
+            { to: `/projects/${projectId}/checkliste`, labelKey: 'dashboard.link.checklist', icon: '✓' },
+            { to: `/projects/${projectId}/makros`, labelKey: 'dashboard.link.macros', icon: '⚡' },
+            { to: `/projects/${projectId}/dns`, labelKey: 'dashboard.link.dns', icon: '◎' },
+            { to: `/projects/${projectId}/faq`, labelKey: 'dashboard.link.faq', icon: '?' },
+            { to: `/projects/${projectId}/intern`, labelKey: 'dashboard.link.intern', icon: '⊙' },
           ].map(({ to, labelKey, icon }) => (
             <Link key={to} to={to} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 13, color: 'var(--muted-l)', textDecoration: 'none', minHeight: 40 }}>
               <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)', width: 16, textAlign: 'center' }}>{icon}</span>

@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { FRAGENKATALOG } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
 
 const PRIO_COLOR = {
@@ -11,15 +13,18 @@ const PRIO_COLOR = {
 
 const CAT_COLOR = { green: 'var(--green)', amber: 'var(--amber)', blue: 'var(--blue)', purple: 'var(--purple)' }
 
-const allFragen = FRAGENKATALOG.flatMap((k) => k.fragen)
-const mustCount = allFragen.filter((f) => f.prio === 'MUSS').length
-const sollteCount = allFragen.filter((f) => f.prio === 'SOLLTE').length
-const kannCount = allFragen.filter((f) => f.prio === 'KANN').length
-
 export default function FragenPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
-  const [answered, setAnswered] = useLocalStorage('hfk-fragen', {})
-  const [notes, setNotes] = useLocalStorage('hfk-fragen-notes', {})
+  const [answered, setAnswered] = useProjectState('fragen', {}, projectId)
+  const [notes, setNotes] = useProjectState('fragen-notes', {}, projectId)
+
+  const fragenkatalog = project?.service_package?.fragenkatalog || FRAGENKATALOG
+  const allFragen = fragenkatalog.flatMap((k) => k.fragen || [])
+  const mustCount = allFragen.filter((f) => f.prio === 'MUSS').length
+  const sollteCount = allFragen.filter((f) => f.prio === 'SOLLTE').length
+  const kannCount = allFragen.filter((f) => f.prio === 'KANN').length
   const [filter, setFilter] = useState('ALL')
   const [openNote, setOpenNote] = useState(null)
 
@@ -47,7 +52,7 @@ export default function FragenPage() {
       {/* Summary */}
       <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10, marginBottom: 20 }}>
         {[
-          { label: t('questions.totalAnswered'), value: `${totalAnswered} / 24`, color: 'var(--green)' },
+          { label: t('questions.totalAnswered'), value: `${totalAnswered} / ${allFragen.length}`, color: 'var(--green)' },
           { label: 'MUSS', value: mustCount, sub: t('questions.mustSub'), color: '#C0392B' },
           { label: 'SOLLTE', value: sollteCount, sub: t('questions.shouldSub'), color: '#C47C20' },
           { label: 'KANN', value: kannCount, sub: t('questions.canSub'), color: '#2563A8' },
@@ -63,10 +68,10 @@ export default function FragenPage() {
       {/* Progress */}
       <div style={{ marginBottom: 22 }}>
         <div style={{ background: 'var(--border)', borderRadius: 4, height: 6, overflow: 'hidden' }}>
-          <div style={{ width: `${(totalAnswered / 24) * 100}%`, height: '100%', background: 'var(--green)', borderRadius: 4, transition: 'width .3s' }} />
+          <div style={{ width: `${allFragen.length > 0 ? (totalAnswered / allFragen.length) * 100 : 0}%`, height: '100%', background: 'var(--green)', borderRadius: 4, transition: 'width .3s' }} />
         </div>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 5, fontFamily: 'var(--font-mono)' }}>
-          {totalAnswered} {t('questions.progress')} ({Math.round((totalAnswered / 24) * 100)}%)
+          {totalAnswered} {t('questions.progress')} ({allFragen.length > 0 ? Math.round((totalAnswered / allFragen.length) * 100) : 0}%)
         </div>
       </div>
 
@@ -83,10 +88,10 @@ export default function FragenPage() {
       </div>
 
       {/* Categories */}
-      {FRAGENKATALOG.map((kat) => {
-        const visible = visibleFragen(kat.fragen)
+      {fragenkatalog.map((kat) => {
+        const visible = visibleFragen(kat.fragen || [])
         if (visible.length === 0) return null
-        const katAnswered = kat.fragen.filter((f) => answered[f.id]).length
+        const katAnswered = (kat.fragen || []).filter((f) => answered[f.id]).length
 
         return (
           <div key={kat.id} style={{ marginBottom: 32 }}>

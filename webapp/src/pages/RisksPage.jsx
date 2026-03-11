@@ -1,10 +1,16 @@
+import { useParams } from 'react-router-dom'
 import { RISKS } from '../data/hfkData'
+import { useProject } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 
 export default function RisksPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
+
+  const risks = project?.service_package?.risks || RISKS
 
   const levelConfig = {
     hoch:    { badge: 'red',   labelKey: 'risks.high',   border: 'rgba(239,68,68,.2)',   bg: 'rgba(239,68,68,.04)' },
@@ -13,9 +19,9 @@ export default function RisksPage() {
   }
 
   const grouped = {
-    hoch: RISKS.filter((r) => r.level === 'hoch'),
-    mittel: RISKS.filter((r) => r.level === 'mittel'),
-    niedrig: RISKS.filter((r) => r.level === 'niedrig'),
+    hoch: risks.filter((r) => r.level === 'hoch'),
+    mittel: risks.filter((r) => r.level === 'mittel'),
+    niedrig: risks.filter((r) => r.level === 'niedrig'),
   }
 
   return (

@@ -1,24 +1,29 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { PHASES } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
-
-const DEFAULT_PHASES = Object.fromEntries(PHASES.map((p) => [p.id, p.honorar]))
-const TOTAL_HOURS = PHASES.reduce((a, p) => a + p.hours, 0)
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 
 function numId() {
   return Math.random().toString(36).slice(2, 9)
 }
 
 export default function AngebotPage() {
-  const [data, setData] = useLocalStorage('hfk-angebot', { phases: DEFAULT_PHASES, extras: [] })
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
+
+  const phases = project?.service_package?.phases || PHASES
+  const DEFAULT_PHASES = Object.fromEntries(phases.map((p) => [p.id, p.honorar]))
+  const TOTAL_HOURS = phases.reduce((a, p) => a + (p.hours || 0), 0)
+
+  const [data, setData] = useProjectState('angebot', { phases: DEFAULT_PHASES, extras: [] }, projectId)
   const [newLabel, setNewLabel] = useState('')
   const [newPrice, setNewPrice] = useState('')
 
-  const phases = { ...DEFAULT_PHASES, ...data.phases }
+  const phasePrices = { ...DEFAULT_PHASES, ...data.phases }
   const extras = data.extras || []
 
-  const phaseTotal = Object.values(phases).reduce((a, v) => a + (Number(v) || 0), 0)
+  const phaseTotal = Object.values(phasePrices).reduce((a, v) => a + (Number(v) || 0), 0)
   const extraTotal = extras.reduce((a, e) => a + (Number(e.price) || 0), 0)
   const total = phaseTotal + extraTotal
   const stundensatz = TOTAL_HOURS > 0 ? Math.round(total / TOTAL_HOURS) : 0
@@ -57,7 +62,7 @@ export default function AngebotPage() {
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Link to="/intern" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Link to={`/projects/${projectId}/intern`} style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 4 }}>
             ← Kalkulation
           </Link>
           <span style={{ fontSize: 11, color: 'var(--border)' }}>·</span>
@@ -82,7 +87,7 @@ export default function AngebotPage() {
           { label: 'Gesamt-Honorar', value: `€${total.toLocaleString('de')}`, color: 'var(--green)' },
           { label: 'Ø Stundensatz', value: `€${stundensatz}/h`, color: 'var(--blue)' },
           { label: 'Stunden gesamt', value: `${TOTAL_HOURS}h`, color: 'var(--muted-l)' },
-          { label: 'Positionen', value: PHASES.length + extras.length, color: 'var(--amber)' },
+          { label: 'Positionen', value: phases.length + extras.length, color: 'var(--amber)' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{ background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '12px 14px' }}>
             <div style={{ fontSize: 22, fontWeight: 700, color, fontFamily: 'var(--font-mono)', lineHeight: 1 }}>{value}</div>
@@ -96,8 +101,8 @@ export default function AngebotPage() {
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8 }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>Phasen-Honorar</span>
         </div>
-        {PHASES.map((phase, i) => (
-          <div key={phase.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: i < PHASES.length - 1 ? '1px solid var(--border)' : 'none' }}>
+        {phases.map((phase, i) => (
+          <div key={phase.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: i < phases.length - 1 ? '1px solid var(--border)' : 'none' }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', width: 60, flexShrink: 0 }}>{phase.number}</div>
             <div style={{ flex: 1, fontSize: 13, color: 'var(--white-d)', minWidth: 0 }}>{phase.title}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>~{phase.hours}h</div>
@@ -107,7 +112,7 @@ export default function AngebotPage() {
                 type="number"
                 min="0"
                 step="10"
-                value={phases[phase.id] ?? phase.honorar}
+                value={phasePrices[phase.id] ?? phase.honorar}
                 onChange={(e) => setPhasePrice(phase.id, e.target.value)}
                 style={{ width: 90, background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 5, padding: '5px 8px', fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--green)', textAlign: 'right', outline: 'none' }}
               />
@@ -189,7 +194,7 @@ export default function AngebotPage() {
       <div style={{ background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 'var(--r)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>Gesamt-Honorar (netto)</div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{TOTAL_HOURS}h × €{stundensatz}/h Ø · {PHASES.length + extras.length} Positionen</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{TOTAL_HOURS}h × €{stundensatz}/h Ø · {phases.length + extras.length} Positionen</div>
         </div>
         <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>€{total.toLocaleString('de')}</div>
       </div>

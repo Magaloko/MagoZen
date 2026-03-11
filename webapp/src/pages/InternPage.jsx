@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { UPSELLS, PHASES } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
-
-const PHASES_DEFAULT = Object.fromEntries(PHASES.map((p) => [p.id, p.honorar]))
 
 const PLANS = [
   { id: 'team', label: 'Suite Team', price: 55 },
@@ -154,8 +153,13 @@ function LizenzRechner() {
 }
 
 export default function InternPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
-  const [angebotData] = useLocalStorage('hfk-angebot', null)
+  const [angebotData] = useProjectState('angebot', null, projectId)
+
+  const phases = project?.service_package?.phases || PHASES
+  const PHASES_DEFAULT = Object.fromEntries(phases.map((p) => [p.id, p.honorar]))
 
   const phasePrices = angebotData?.phases
     ? { ...PHASES_DEFAULT, ...angebotData.phases }
@@ -197,7 +201,7 @@ export default function InternPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{t('intern.fee.note')}</span>
-            <Link to="/angebot" style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--green)', textDecoration: 'none', border: '1px solid var(--green-b)', borderRadius: 4, padding: '3px 10px', background: 'var(--green-d)', whiteSpace: 'nowrap' }}>
+            <Link to={`/projects/${projectId}/angebot`} style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--green)', textDecoration: 'none', border: '1px solid var(--green-b)', borderRadius: 4, padding: '3px 10px', background: 'var(--green-d)', whiteSpace: 'nowrap' }}>
               Angebot bearbeiten →
             </Link>
           </div>

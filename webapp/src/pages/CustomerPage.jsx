@@ -1,9 +1,12 @@
+import { useParams } from 'react-router-dom'
 import { CUSTOMER, GRUPPEN, LIZENZEN, COPILOT_SETTINGS } from '../data/hfkData'
+import { useProject } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 
 function Row({ label, value, mono }) {
+  if (!value) return null
   return (
     <div style={{ display: 'flex', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13, alignItems: 'flex-start', flexWrap: 'wrap' }}>
       <span style={{ color: 'var(--muted-l)', minWidth: 140, flexShrink: 0 }}>{label}</span>
@@ -13,7 +16,21 @@ function Row({ label, value, mono }) {
 }
 
 export default function CustomerPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
+
+  const customer = project?.customer_data || CUSTOMER
+  const lizenzen = project?.service_package?.lizenzen || LIZENZEN
+  const gruppen = project?.service_package?.gruppen || GRUPPEN
+  const copilotSettings = project?.service_package?.copilot_settings || COPILOT_SETTINGS
+
+  const agentsLabel = project
+    ? [
+        project.service_package?.agents_full ? `${project.service_package.agents_full} Full` : null,
+        project.service_package?.agents_light ? `${project.service_package.agents_light} Light` : null,
+      ].filter(Boolean).join(' + ') || '–'
+    : '6 Agenten (4 Full + 2 Light)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -22,20 +39,20 @@ export default function CustomerPage() {
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 16 }}>
           {t('customer.confirmed')}
         </div>
-        <Row label={t('customer.labels.name')} value={CUSTOMER.name} />
-        <Row label={t('customer.labels.short')} value={CUSTOMER.short} mono />
-        <Row label={t('customer.labels.url')} value={CUSTOMER.url} mono />
-        <Row label={t('customer.labels.email')} value={CUSTOMER.email} mono />
-        <Row label={t('customer.labels.hoster')} value={CUSTOMER.hoster} />
-        <Row label={t('customer.labels.zendesk')} value={CUSTOMER.zendeskSubdomain} mono />
-        <Row label={t('customer.labels.jtlShop')} value={CUSTOMER.jtlShop} mono />
-        <Row label={t('customer.labels.jtlWawi')} value={CUSTOMER.jtlWawi} mono />
-        <Row label={t('customer.labels.agents')} value="6 Agenten (4 Full + 2 Light)" />
-        <Row label={t('customer.labels.volume')} value={CUSTOMER.volumen} />
-        <Row label={t('customer.labels.market')} value={CUSTOMER.markt} />
-        <Row label={t('customer.labels.tz')} value={CUSTOMER.timezone} mono />
-        <Row label={t('customer.labels.range')} value={CUSTOMER.sortiment} />
-        <Row label={t('customer.labels.channels')} value={CUSTOMER.aktuelleKanäle} />
+        <Row label={t('customer.labels.name')} value={customer.name} />
+        <Row label={t('customer.labels.short')} value={customer.short} mono />
+        <Row label={t('customer.labels.url')} value={customer.url} mono />
+        <Row label={t('customer.labels.email')} value={customer.email} mono />
+        <Row label={t('customer.labels.hoster')} value={customer.hoster} />
+        <Row label={t('customer.labels.zendesk')} value={customer.zendeskSubdomain} mono />
+        <Row label={t('customer.labels.jtlShop')} value={customer.jtlShop} mono />
+        <Row label={t('customer.labels.jtlWawi')} value={customer.jtlWawi} mono />
+        <Row label={t('customer.labels.agents')} value={agentsLabel} />
+        <Row label={t('customer.labels.volume')} value={customer.volumen} />
+        <Row label={t('customer.labels.market')} value={customer.markt} />
+        <Row label={t('customer.labels.tz')} value={customer.timezone} mono />
+        <Row label={t('customer.labels.range')} value={customer.sortiment} />
+        <Row label={t('customer.labels.channels')} value={customer.aktuelleKanäle} />
       </Card>
 
       <Card>
@@ -43,7 +60,7 @@ export default function CustomerPage() {
           {t('customer.branding')}
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {Object.entries(CUSTOMER.branding).map(([name, hex]) => (
+          {Object.entries(customer.branding || {}).map(([name, hex]) => (
             <div key={name} onClick={() => navigator.clipboard.writeText(hex)} title={`${t('customer.clickCopy')}: ${hex}`}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer', padding: 10, borderRadius: 8, border: '1px solid var(--border)' }}>
               <div style={{ width: 44, height: 44, borderRadius: 6, background: hex, border: '1px solid rgba(255,255,255,.1)' }} />
@@ -59,7 +76,7 @@ export default function CustomerPage() {
           {t('customer.groups')}
         </div>
         <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-          {GRUPPEN.map((g) => (
+          {gruppen.map((g) => (
             <div key={g.name} style={{ padding: '14px 14px', background: 'var(--ink)', border: `1px solid ${g.inactive ? 'rgba(245,158,11,.2)' : 'var(--border)'}`, borderRadius: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontWeight: 600, fontSize: 13 }}>{g.name}</span>
@@ -85,7 +102,7 @@ export default function CustomerPage() {
               </tr>
             </thead>
             <tbody>
-              {LIZENZEN.map((l, i) => (
+              {lizenzen.map((l, i) => (
                 <tr key={l.rolle} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,.02)' : 'transparent' }}>
                   <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)' }}>{l.rolle}</td>
                   <td style={{ padding: '10px 10px', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)' }}>{l.typ}</td>
@@ -105,7 +122,7 @@ export default function CustomerPage() {
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
           {t('customer.copilot')}
         </div>
-        {COPILOT_SETTINGS.map((s) => (
+        {copilotSettings.map((s) => (
           <div key={s.feature} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', minHeight: 44 }}>
             <Badge color={s.active ? 'green' : 'red'}>{s.value}</Badge>
             <span style={{ fontWeight: 500, fontSize: 13, minWidth: 160 }}>{s.feature}</span>

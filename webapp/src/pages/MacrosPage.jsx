@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { MACROS } from '../data/hfkData'
+import { useProject } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
@@ -9,9 +11,12 @@ import Modal from '../components/ui/Modal'
 const typeColorMap = { green: 'green', amber: 'amber', blue: 'blue', red: 'red' }
 
 export default function MacrosPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
   const [selected, setSelected] = useState(null)
   const [copied, setCopied] = useState(false)
+  const macros = project?.service_package?.macros || MACROS
 
   const copyTemplate = (text) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -27,7 +32,7 @@ export default function MacrosPage() {
       </div>
 
       <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-        {MACROS.map((macro) => (
+        {macros.map((macro) => (
           <Card key={macro.id} onClick={() => setSelected(macro)} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{macro.id}</span>

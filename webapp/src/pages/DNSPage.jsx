@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { DNS_RECORDS, CUSTOMER } from '../data/hfkData'
+import { useProject } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
@@ -51,7 +53,13 @@ function DnsRow({ record, t }) {
 }
 
 export default function DNSPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
+
+  const dnsRecords = project?.service_package?.dns_records || DNS_RECORDS
+  const customer = project?.customer_data || CUSTOMER
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
 
@@ -73,7 +81,7 @@ export default function DNSPage() {
               </tr>
             </thead>
             <tbody>
-              {DNS_RECORDS.map((r, i) => <DnsRow key={i} record={r} t={t} />)}
+              {dnsRecords.map((r, i) => <DnsRow key={i} record={r} t={t} />)}
             </tbody>
           </table>
         </div>
@@ -83,9 +91,9 @@ export default function DNSPage() {
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
           {t('dns.emailTitle')}
         </div>
-        <CopyField label="Support-Adresse (Zendesk)" value={CUSTOMER.email} t={t} />
+        <CopyField label="Support-Adresse (Zendesk)" value={customer.email} t={t} />
         <CopyField label="Absender-Name" value="Herr & Frau Klein Service" t={t} />
-        <CopyField label="Zendesk Subdomain" value={CUSTOMER.zendeskSubdomain} t={t} />
+        <CopyField label="Zendesk Subdomain" value={customer.zendeskSubdomain} t={t} />
         <CopyField label="Eingangsbestätigung" value="Wir antworten innerhalb von 8 Stunden" t={t} />
       </Card>
 
@@ -94,12 +102,12 @@ export default function DNSPage() {
           {t('dns.urlsTitle')}
         </div>
         {[
-          ['Zendesk Admin Center', `https://${CUSTOMER.zendeskSubdomain}/admin`],
-          ['DKIM Keys', `https://${CUSTOMER.zendeskSubdomain}/admin/channels/email`],
-          ['JTL Marketplace App', `https://${CUSTOMER.zendeskSubdomain}/admin/apps-and-integrations/apps/marketplace`],
+          ['Zendesk Admin Center', `https://${customer.zendeskSubdomain}/admin`],
+          ['DKIM Keys', `https://${customer.zendeskSubdomain}/admin/channels/email`],
+          ['JTL Marketplace App', `https://${customer.zendeskSubdomain}/admin/apps-and-integrations/apps/marketplace`],
           ['DNS Checker', 'https://dnschecker.org'],
           ['SPF Validator', 'https://mxtoolbox.com/spf.aspx'],
-          ['JTL REST API', `https://${CUSTOMER.url}/api/v1`],
+          ['JTL REST API', `https://${customer.url}/api/v1`],
         ].map(([label, url]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', minHeight: 40 }}>
             <span style={{ fontSize: 12, color: 'var(--muted-l)', minWidth: 160, flexShrink: 0 }}>{label}</span>

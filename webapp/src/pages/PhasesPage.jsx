@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { PHASES } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
 import Badge from '../components/ui/Badge'
 import Card from '../components/ui/Card'
@@ -196,10 +198,14 @@ function PhaseBlock({ phase, checked, onToggle, taskStatus, onCycleStatus, taskF
 }
 
 export default function PhasesPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
-  const [checked, setChecked] = useLocalStorage('hfk-tasks', {})
-  const [taskStatus, setTaskStatus] = useLocalStorage('hfk-task-status', {})
-  const [taskFields, setTaskFields] = useLocalStorage('hfk-task-fields', {})
+  const [checked, setChecked] = useProjectState('tasks', {}, projectId)
+  const [taskStatus, setTaskStatus] = useProjectState('task-status', {}, projectId)
+  const [taskFields, setTaskFields] = useProjectState('task-fields', {}, projectId)
+
+  const phases = project?.service_package?.phases || PHASES
 
   const handleToggle = (id, forceTrue) => {
     setChecked((prev) => ({ ...prev, [id]: forceTrue !== undefined ? forceTrue : !prev[id] }))
@@ -221,8 +227,8 @@ export default function PhasesPage() {
     }))
   }
 
-  const totalDone = PHASES.flatMap((p) => p.tasks).filter((task) => checked[task.id]).length
-  const totalAll = PHASES.flatMap((p) => p.tasks).length
+  const totalDone = phases.flatMap((p) => p.tasks || []).filter((task) => checked[task.id]).length
+  const totalAll = phases.flatMap((p) => p.tasks || []).length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -234,7 +240,7 @@ export default function PhasesPage() {
         <Button size="sm" variant="ghost" onClick={() => { if (window.confirm(t('phases.resetConfirm'))) setChecked({}) }}>{t('phases.reset')}</Button>
       </div>
 
-      {PHASES.map((phase) => (
+      {phases.map((phase) => (
         <PhaseBlock
           key={phase.id}
           phase={phase}

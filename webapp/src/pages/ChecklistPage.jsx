@@ -1,18 +1,24 @@
+import { useParams } from 'react-router-dom'
 import { GOLIVELISTE } from '../data/hfkData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useProject } from '../context/ProjectContext'
+import { useProjectState } from '../hooks/useProjectState'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 
 export default function ChecklistPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
-  const [checked, setChecked] = useLocalStorage('hfk-golive', {})
+  const [checked, setChecked] = useProjectState('golive', {}, projectId)
+
+  const goliveliste = project?.service_package?.goliveliste || GOLIVELISTE
 
   const toggle = (id) => setChecked((prev) => ({ ...prev, [id]: !prev[id] }))
-  const done = GOLIVELISTE.filter((g) => checked[g.id]).length
-  const total = GOLIVELISTE.length
+  const done = goliveliste.filter((g) => checked[g.id]).length
+  const total = goliveliste.length
   const pct = Math.round((done / total) * 100)
-  const pendingItems = GOLIVELISTE.filter((g) => g.pending && !checked[g.id])
+  const pendingItems = goliveliste.filter((g) => g.pending && !checked[g.id])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -57,9 +63,9 @@ export default function ChecklistPage() {
           <Button size="sm" variant="ghost" onClick={() => setChecked({})}>{t('checklist.reset')}</Button>
         </div>
         <div className="grid-auto-fill" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-          {GOLIVELISTE.map((item, i) => {
+          {goliveliste.map((item, i) => {
             const isDone = !!checked[item.id]
-            const isLast = i === GOLIVELISTE.length - 1
+            const isLast = i === goliveliste.length - 1
             return (
               <label
                 key={item.id}

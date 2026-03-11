@@ -1,11 +1,17 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { FAQ_HFK } from '../data/hfkData'
+import { useProject } from '../context/ProjectContext'
 import { useLanguage } from '../context/LanguageContext'
 import Card from '../components/ui/Card'
 
 export default function FAQPage() {
+  const { projectId } = useParams()
+  const { project } = useProject(projectId)
   const { t } = useLanguage()
   const [open, setOpen] = useState(null)
+
+  const faq = project?.service_package?.faq || FAQ_HFK
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -15,7 +21,7 @@ export default function FAQPage() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {FAQ_HFK.map((item, i) => (
+        {faq.map((item, i) => (
           <Card key={i} style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }} onClick={() => setOpen(open === i ? null : i)}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', minHeight: 48 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', flexShrink: 0, marginTop: 2 }}>Q</span>
