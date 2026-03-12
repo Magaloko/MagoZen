@@ -668,7 +668,7 @@ function StepStufenplan({ stages, onStages, selectedServices }) {
                 onChange={(e) => updateStage(s.id, { desc: e.target.value })}
                 placeholder="Beschreibung: Was passiert in dieser Stufe?"
                 rows={2}
-                style={{ width: '100%', background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: 'var(--white-d)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5, color: 'var(--muted-l)' }}
+                style={{ width: '100%', background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: 'var(--muted-l)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5 }}
               />
             </div>
 
