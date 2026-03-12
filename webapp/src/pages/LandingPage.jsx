@@ -128,6 +128,78 @@ function FlowArrow({ inView, delay = 0 }) {
   )
 }
 
+// ── Hero animated automation flow ────────────────────────────────────────────
+function HeroFlow() {
+  const FLOW_STEPS = [
+    { label: 'E-Mail',     sub: 'Ticket eingeht',      Icon: IcoMsg,     color: C.green  },
+    { label: 'Zendesk',   sub: 'Erfasst & geroutet',  Icon: IcoHeadset, color: C.green  },
+    { label: 'JTL',       sub: 'Bestelldaten sync',   Icon: IcoServer,  color: C.green  },
+    { label: 'AI Copilot',sub: 'Antwort vorschlagen', Icon: IcoChart,   color: '#7C3AED' },
+    { label: 'Gelöst',    sub: 'Ticket geschlossen',  Icon: IcoCheckSq, color: C.green  },
+  ]
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setActive(p => (p + 1) % FLOW_STEPS.length), 1600)
+    return () => clearInterval(t)
+  }, [])
+
+  const items = []
+  FLOW_STEPS.forEach((step, i) => {
+    const isActive = i === active
+    const isDone   = i < active
+    items.push(
+      <div key={step.label} style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+        padding: '8px 10px', borderRadius: 10,
+        border: `1.5px solid ${isActive ? step.color : 'transparent'}`,
+        background: isActive ? 'rgba(92,122,106,0.07)' : 'transparent',
+        transform: isActive ? 'translateY(-3px)' : 'none',
+        transition: 'all 0.35s ease',
+        minWidth: 68,
+      }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: isActive ? step.color : isDone ? C.greenBg : 'transparent',
+          border: `1.5px solid ${isActive ? 'transparent' : isDone ? C.greenBd : C.border}`,
+          transition: 'all 0.35s ease',
+          boxShadow: isActive ? `0 4px 14px ${step.color}44` : 'none',
+        }}>
+          <step.Icon size={14} color={isActive ? '#fff' : isDone ? C.green : C.muted} sw={1.8}/>
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: isActive ? step.color : isDone ? C.sub : C.muted, whiteSpace: 'nowrap', transition: 'color 0.35s' }}>{step.label}</div>
+        <div style={{ fontSize: 9, color: isActive ? step.color : C.muted, opacity: isActive ? 0.8 : 0.5, whiteSpace: 'nowrap', transition: 'all 0.35s' }}>{step.sub}</div>
+      </div>
+    )
+    if (i < FLOW_STEPS.length - 1) {
+      items.push(
+        <svg key={`a${i}`} width="18" height="12" viewBox="0 0 18 12" fill="none" style={{ flexShrink: 0, marginTop: -12 }}>
+          <path d="M1 6 H14 M10 2 L15 6 L10 10"
+            stroke={i < active ? C.green : C.border}
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transition: 'stroke 0.35s ease' }}/>
+        </svg>
+      )
+    }
+  })
+
+  return (
+    <div style={{ marginTop: 44, display: 'flex', justifyContent: 'center' }}>
+      <div style={{
+        background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(10px)',
+        border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px 18px',
+        display: 'inline-flex', alignItems: 'center', gap: 2,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 10, flexShrink: 0 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'block', animation: 'lp-pulse 2s ease-in-out infinite' }}/>
+          <span style={{ fontSize: 9, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 1 }}>Live</span>
+        </div>
+        {items}
+      </div>
+    </div>
+  )
+}
+
 function StepCard({ s }) {
   return (
     <div style={{ padding: '28px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.page, height: '100%', boxSizing: 'border-box' }}>
@@ -549,6 +621,7 @@ export default function LandingPage() {
               Lizenzrechner
             </Link>
           </div>
+          <HeroFlow />
         </div>
       </section>
 
