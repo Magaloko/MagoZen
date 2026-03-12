@@ -31,10 +31,10 @@ const CSS = `
 
 // ── Konfigurator data ─────────────────────────────────────────────────────────
 const KZD_PLANS = [
-  { id: 'team',         name: 'Team',         price: 55  },
-  { id: 'growth',       name: 'Growth',       price: 89  },
-  { id: 'professional', name: 'Professional', price: 115, popular: true },
-  { id: 'enterprise',   name: 'Enterprise',   price: 169 },
+  { id: 'team',         name: 'Team',         sub: 'Einstieg'         },
+  { id: 'growth',       name: 'Growth',       sub: 'Wachstum'         },
+  { id: 'professional', name: 'Professional', sub: 'Empfohlen', popular: true },
+  { id: 'enterprise',   name: 'Enterprise',   sub: 'Großbetrieb'      },
 ]
 
 const KZD_ADDONS = [
@@ -225,30 +225,36 @@ function Konfigurator() {
   const [paUsers, setPaUsers] = useState(4)
   const [paAddons, setPaAddons] = useState(new Set())
 
+  const [reqName, setReqName]   = useState('')
+  const [reqEmail, setReqEmail] = useState('')
+  const [sent, setSent]         = useState(false)
+
   const toggleSet = (setFn, id) => setFn(prev => {
     const next = new Set(prev)
     next.has(id) ? next.delete(id) : next.add(id)
     return next
   })
 
-  // Price calculation
-  const zdPlanPrice = KZD_PLANS.find(p => p.id === zdPlan)?.price || 0
-  const zdBase = svcZd ? zdPlanPrice * zdAgents : 0
-  const zdAddonCost = svcZd ? [...zdAddons].reduce((sum, id) => {
-    const a = KZD_ADDONS.find(x => x.id === id)
-    if (!a) return sum
-    return sum + (a.pricePer === 'agent' ? a.price * zdAgents : a.price)
-  }, 0) : 0
+  // Build mailto body from config
+  const buildMailto = () => {
+    const lines = [`Anfrage von: ${reqName}`, `E-Mail: ${reqEmail}`, '', '--- Konfiguration ---']
+    if (svcZd) {
+      const plan = KZD_PLANS.find(p => p.id === zdPlan)
+      lines.push(`Zendesk Suite – Plan: ${plan?.name}, Agenten: ${zdAgents}`)
+      if (zdAddons.size) lines.push(`  Add-ons: ${[...zdAddons].map(id => KZD_ADDONS.find(x => x.id === id)?.label).join(', ')}`)
+    }
+    if (svcPa) {
+      const plan = paPlan === 'peruser' ? 'Per User Premium' : 'Per Flow Process'
+      lines.push(`Power Automate – Plan: ${plan}, ${paPlan === 'peruser' ? 'Nutzer' : 'Flows'}: ${paUsers}`)
+      if (paAddons.size) lines.push(`  Add-ons: ${[...paAddons].map(id => KPA_ADDONS.find(x => x.id === id)?.label).join(', ')}`)
+    }
+    lines.push('', 'Bitte erstellen Sie mir ein individuelles Angebot.')
+    const body = encodeURIComponent(lines.join('\n'))
+    const subject = encodeURIComponent('Projektanfrage – Zendesk / Power Automate Setup')
+    return `mailto:service@herrundfrauklein.zendesk.com?subject=${subject}&body=${body}`
+  }
 
-  const paUserPrice = paPlan === 'peruser' ? 15 : 150
-  const paBase = svcPa ? paUserPrice * paUsers : 0
-  const paAddonCost = svcPa ? [...paAddons].reduce((sum, id) => {
-    const a = KPA_ADDONS.find(x => x.id === id)
-    if (!a || a.pricePer === 'custom') return sum
-    return sum + a.price * paUsers
-  }, 0) : 0
-
-  const total = zdBase + zdAddonCost + paBase + paAddonCost
+  const canSend = (svcZd || svcPa) && reqName.trim() && reqEmail.includes('@')
 
   // Shared checkbox row
   const AddonRow = ({ a, active, accent, accentBd, accentBg, onToggle }) => (
@@ -270,9 +276,9 @@ function Konfigurator() {
         <span style={{ fontWeight: 600, fontSize: 13 }}>{a.label}</span>
         <span style={{ color: C.muted, fontSize: 12, marginLeft: 8 }}>{a.desc}</span>
       </div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: active ? accent : C.muted, whiteSpace: 'nowrap' }}>
-        {a.pricePer === 'free' ? 'inkl.' : a.pricePer === 'custom' ? 'Anfrage' : a.pricePer === 'flat' ? `+€${a.price}` : a.pricePer === 'agent' ? `+€${a.price}/Agent` : `+€${a.price}/Nutzer`}
-      </div>
+      {a.pricePer === 'free' && (
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.green, whiteSpace: 'nowrap' }}>inklusive</div>
+      )}
     </div>
   )
 
@@ -294,8 +300,8 @@ function Konfigurator() {
     <section style={{ background: C.page, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: '64px 24px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <SectionHead
-          title="Konfigurieren Sie Ihr Paket"
-          sub="Wählen Sie Dienste, Plan und Add-ons — und sehen Sie sofort, was Sie erwarten können."
+          title="Was brauchen Sie?"
+          sub="Stellen Sie Ihre gewünschte Konfiguration zusammen — wir erstellen Ihnen ein individuelles Angebot."
         />
 
         <div className="lp-kconf-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
@@ -351,7 +357,7 @@ function Konfigurator() {
                         <div style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: C.green, color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 10, whiteSpace: 'nowrap' }}>Beliebt</div>
                       )}
                       <div style={{ fontWeight: 700, fontSize: 12, color: zdPlan === plan.id ? C.green : C.text }}>{plan.name}</div>
-                      <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>€{plan.price}/Agent</div>
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{plan.sub}</div>
                     </div>
                   ))}
                 </div>
@@ -379,8 +385,8 @@ function Konfigurator() {
                 <Label>{svcZd ? '3 · Power Automate Plan & Nutzer' : '2 · Power Automate Plan & Nutzer'}</Label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                   {[
-                    { id: 'peruser', name: 'Per User Premium', price: 15, sub: 'pro Nutzer / Mo.' },
-                    { id: 'process', name: 'Per Flow Process',  price: 150, sub: 'pro Flow / Mo.' },
+                    { id: 'peruser', name: 'Per User Premium', sub: 'Nutzerbasiert' },
+                    { id: 'process', name: 'Per Flow Process',  sub: 'Prozessbasiert' },
                   ].map(plan => (
                     <div key={plan.id} onClick={() => setPaPlan(plan.id)} style={{
                       border: `2px solid ${paPlan === plan.id ? C.blue : C.border}`,
@@ -388,7 +394,7 @@ function Konfigurator() {
                       background: paPlan === plan.id ? C.blueBg : C.surface, transition: 'all 0.2s',
                     }}>
                       <div style={{ fontWeight: 700, fontSize: 12, color: paPlan === plan.id ? C.blue : C.text }}>{plan.name}</div>
-                      <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>€{plan.price} {plan.sub}</div>
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>{plan.sub}</div>
                     </div>
                   ))}
                 </div>
@@ -417,77 +423,97 @@ function Konfigurator() {
             )}
           </div>
 
-          {/* RIGHT: Live price summary */}
+          {/* RIGHT: Inquiry panel */}
           <div style={{ position: 'sticky', top: 80 }}>
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 }}>Geschätzte Kosten / Mo.</div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+              {/* Config summary */}
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14 }}>Ihre Auswahl</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                 {svcZd && (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: C.sub }}>Zendesk {KZD_PLANS.find(p => p.id === zdPlan)?.name} × {zdAgents}</span>
-                      <span style={{ fontWeight: 600 }}>€{zdBase}</span>
+                  <div style={{ background: C.greenBg, border: `1px solid ${C.greenBd}`, borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: C.green }}>Zendesk Suite</div>
+                    <div style={{ fontSize: 12, color: C.sub, marginTop: 3 }}>
+                      Plan: {KZD_PLANS.find(p => p.id === zdPlan)?.name} · {zdAgents} {zdAgents === 1 ? 'Agent' : 'Agenten'}
                     </div>
-                    {[...zdAddons].map(id => {
-                      const a = KZD_ADDONS.find(x => x.id === id)
-                      if (!a) return null
-                      const cost = a.pricePer === 'agent' ? a.price * zdAgents : a.price
-                      return (
-                        <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: C.muted }}>
-                          <span>+ {a.label}</span>
-                          <span>{cost === 0 ? 'inkl.' : `€${cost}`}</span>
-                        </div>
-                      )
-                    })}
-                  </>
+                    {zdAddons.size > 0 && (
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>
+                        + {[...zdAddons].map(id => KZD_ADDONS.find(x => x.id === id)?.label).join(', ')}
+                      </div>
+                    )}
+                  </div>
                 )}
                 {svcPa && (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: C.sub }}>Power Automate × {paUsers}</span>
-                      <span style={{ fontWeight: 600 }}>€{paBase}</span>
+                  <div style={{ background: C.blueBg, border: `1px solid ${C.blueBd}`, borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: C.blue }}>Power Automate</div>
+                    <div style={{ fontSize: 12, color: C.sub, marginTop: 3 }}>
+                      {paPlan === 'peruser' ? 'Per User Premium' : 'Per Flow Process'} · {paUsers} {paPlan === 'peruser' ? 'Nutzer' : 'Flows'}
                     </div>
-                    {[...paAddons].map(id => {
-                      const a = KPA_ADDONS.find(x => x.id === id)
-                      if (!a) return null
-                      return (
-                        <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: C.muted }}>
-                          <span>+ {a.label}</span>
-                          <span>{a.pricePer === 'custom' ? 'Anfrage' : `€${a.price * paUsers}`}</span>
-                        </div>
-                      )
-                    })}
-                  </>
+                    {paAddons.size > 0 && (
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>
+                        + {[...paAddons].map(id => KPA_ADDONS.find(x => x.id === id)?.label).join(', ')}
+                      </div>
+                    )}
+                  </div>
                 )}
                 {!svcZd && !svcPa && (
-                  <div style={{ color: C.muted, fontSize: 13, textAlign: 'center', padding: '12px 0' }}>—</div>
+                  <div style={{ color: C.muted, fontSize: 13, textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>
+                    Bitte wählen Sie links einen Dienst aus.
+                  </div>
                 )}
               </div>
 
-              <div style={{ height: 1, background: C.border, marginBottom: 14 }}/>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>Gesamt / Monat</span>
-                <span style={{ fontWeight: 800, fontSize: 26, color: C.green, letterSpacing: -0.5 }}>€{total}</span>
-              </div>
-              <div style={{ fontSize: 11, color: C.muted, marginBottom: 20 }}>Lizenzkosten · zzgl. Einrichtung & Honorar</div>
+              <div style={{ height: 1, background: C.border, marginBottom: 18 }}/>
 
-              <Link to="/register" style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                background: (svcZd || svcPa) ? C.green : C.border,
-                color: '#fff', padding: '11px 16px', borderRadius: 7,
-                fontSize: 13, fontWeight: 700, textDecoration: 'none',
-                width: '100%', boxSizing: 'border-box',
-                pointerEvents: (svcZd || svcPa) ? 'auto' : 'none',
-                transition: 'background 0.2s',
-              }}>
-                Projekt anfragen
-                <IcoArrow size={14} color="#fff" sw={2.2}/>
-              </Link>
-
-              <div style={{ marginTop: 12, fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 1.5 }}>
-                Preise sind Richtwerte.<br/>Genaues Angebot auf Anfrage.
-              </div>
+              {/* Contact fields */}
+              {!sent ? (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>Kontakt für Rückmeldung</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+                    <input
+                      type="text" placeholder="Ihr Name"
+                      value={reqName} onChange={e => setReqName(e.target.value)}
+                      style={{ border: `1px solid ${C.border}`, borderRadius: 7, padding: '9px 12px', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', color: C.text, background: C.surface }}
+                    />
+                    <input
+                      type="email" placeholder="E-Mail-Adresse"
+                      value={reqEmail} onChange={e => setReqEmail(e.target.value)}
+                      style={{ border: `1px solid ${C.border}`, borderRadius: 7, padding: '9px 12px', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', color: C.text, background: C.surface }}
+                    />
+                  </div>
+                  <a
+                    href={canSend ? buildMailto() : undefined}
+                    onClick={canSend ? () => setSent(true) : undefined}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      background: canSend ? C.green : C.border,
+                      color: '#fff', padding: '11px 16px', borderRadius: 7,
+                      fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                      width: '100%', boxSizing: 'border-box',
+                      cursor: canSend ? 'pointer' : 'not-allowed',
+                      transition: 'background 0.2s',
+                    }}
+                  >
+                    Anfrage senden <IcoArrow size={14} color="#fff" sw={2.2}/>
+                  </a>
+                  <div style={{ marginTop: 12, fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 1.6 }}>
+                    Kein Pauschalpreis. Wir analysieren Ihre Anforderungen<br/>und erstellen ein individuelles Angebot.
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: C.greenBg, border: `1px solid ${C.greenBd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <IcoCheckSq size={20} color={C.green} sw={1.8}/>
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 6 }}>Anfrage vorbereitet!</div>
+                  <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
+                    Ihr E-Mail-Programm wurde geöffnet.<br/>Wir melden uns innerhalb von 24 Stunden.
+                  </div>
+                  <button onClick={() => setSent(false)} style={{ marginTop: 14, fontSize: 12, color: C.green, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                    Neue Anfrage
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -554,10 +580,75 @@ const APP_FEATURES = [
   { Icon: IcoFile,    label: 'Angebot & Intern',    desc: 'Angebotsdetails, Upsells und internes Briefing für Admins.' },
 ]
 
-// ── Layout helpers ────────────────────────────────────────────────────────────
-function Section({ children, style = {} }) {
+// ── Public FAQ data ───────────────────────────────────────────────────────────
+const FAQ_PUBLIC = [
+  {
+    q: 'Für welche Unternehmen sind Ihre Dienstleistungen geeignet?',
+    a: 'Unsere Implementierungsleistungen richten sich an mittelständische Unternehmen im E-Commerce-Bereich, die ihren Kundenservice professionalisieren und Betriebsabläufe automatisieren möchten. Wir beraten Sie in einem kostenlosen Erstgespräch, ob und welches Setup zu Ihrer Situation passt.',
+  },
+  {
+    q: 'Wie lange dauert eine typische Implementierung?',
+    a: 'Der zeitliche Rahmen wird nach einer detaillierten Anforderungsanalyse gemeinsam festgelegt. Wir arbeiten phasenbasiert — von der initialen Konfiguration bis zum Go-Live — mit klaren Meilensteinen und einem dedizierten Ansprechpartner für Ihr Team.',
+  },
+  {
+    q: 'Werden bestehende Systeme wie JTL integriert?',
+    a: 'Ja. Die Integration bestehender Systeme — darunter JTL Shopsystem und JTL WAWI — ist zentraler Bestandteil unserer Zendesk-Implementierungen. Bestelldaten, Lieferstatus und Kundendaten werden direkt im Ticket verfügbar, ohne manuelle Nachschlageaufgaben.',
+  },
+  {
+    q: 'Was ist im Projektpreis enthalten?',
+    a: 'Im Projektpreis sind Konfiguration, Integration, Schulung aller Beteiligten und eine Nachbetreuungsphase enthalten. Plattformlizenzkosten (Zendesk, Microsoft) werden separat und direkt mit dem jeweiligen Anbieter abgerechnet. Nach einer kostenlosen Erstanalyse erhalten Sie ein transparentes, individuelles Angebot.',
+  },
+  {
+    q: 'Muss unser Team technisch versiert sein?',
+    a: 'Nein. Unser Ziel ist es, dass Ihr Team nach der Implementierung vollständig selbstständig arbeiten kann. Wir schulen alle Beteiligten und stellen kompakte Dokumentation bereit. Die Systeme werden so konfiguriert, dass der laufende Betrieb ohne IT-Kenntnisse möglich ist.',
+  },
+  {
+    q: 'Wie werden unsere Kundendaten geschützt?',
+    a: 'Alle eingesetzten Plattformen erfüllen die Anforderungen der DSGVO. Zendesk betreibt Rechenzentren innerhalb der EU und bietet Auftragsverarbeitungsverträge gemäß Art. 28 DSGVO. Wir unterstützen Sie bei der datenschutzkonformen Konfiguration aller relevanten Einstellungen.',
+  },
+  {
+    q: 'Was passiert nach dem Go-Live?',
+    a: 'Nach dem Go-Live steht Ihnen eine Nachbetreuungsphase zur Verfügung. Für eine langfristige Begleitung bieten wir optional Betreuungsverträge an, die Systemwartung, Anpassungen an sich ändernde Anforderungen und priorisierten Support umfassen.',
+  },
+  {
+    q: 'Wann ist Power Automate sinnvoll?',
+    a: 'Power Automate eignet sich für Unternehmen, die repetitive Abläufe systemübergreifend automatisieren möchten. Im E-Commerce ermöglicht es unter anderem automatisierte Auftragsverarbeitung, Benachrichtigungen, Datenabgleiche zwischen Systemen sowie Dokumentenverarbeitung — ohne Programmieraufwand.',
+  },
+]
+
+// ── FAQ accordion item ────────────────────────────────────────────────────────
+function FaqItem({ item, index }) {
+  const [open, setOpen] = useState(false)
   return (
-    <section style={{ padding: '64px 24px', ...style }}>
+    <FadeIn delay={index * 40}>
+      <div style={{
+        border: `1px solid ${open ? C.greenBd : C.border}`, borderRadius: 10,
+        overflow: 'hidden', background: C.surface, transition: 'border-color 0.2s',
+      }}>
+        <button onClick={() => setOpen(!open)} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+          padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left',
+        }}>
+          <span style={{ width: 24, height: 24, borderRadius: 6, background: open ? C.greenBg : C.page, border: `1px solid ${open ? C.greenBd : C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+            <span style={{ fontSize: 14, color: open ? C.green : C.muted, lineHeight: 1, fontWeight: 700 }}>{open ? '−' : '+'}</span>
+          </span>
+          <span style={{ fontWeight: 600, fontSize: 15, color: open ? C.text : C.sub, flex: 1 }}>{item.q}</span>
+        </button>
+        {open && (
+          <div style={{ padding: '0 20px 18px 58px', borderTop: `1px solid ${C.border}` }}>
+            <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.75, margin: '14px 0 0' }}>{item.a}</p>
+          </div>
+        )}
+      </div>
+    </FadeIn>
+  )
+}
+
+// ── Layout helpers ────────────────────────────────────────────────────────────
+function Section({ children, style = {}, id }) {
+  return (
+    <section id={id} style={{ padding: '64px 24px', ...style }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>{children}</div>
     </section>
   )
@@ -589,6 +680,7 @@ export default function LandingPage() {
           </span>
           <div style={{ flex: 1 }} />
           <Link to="/rechner" style={{ fontSize: 13, color: C.muted, textDecoration: 'none' }}>Rechner</Link>
+          <a href="#faq"      style={{ fontSize: 13, color: C.muted, textDecoration: 'none', fontWeight: 500 }}>FAQ</a>
           <Link to="/login"   style={{ fontSize: 13, color: C.text, padding: '7px 14px', border: `1px solid ${C.border}`, borderRadius: 6, textDecoration: 'none', fontWeight: 500 }}>Anmelden</Link>
           <Link to="/register" style={{ fontSize: 13, color: '#fff', background: C.green, padding: '7px 16px', borderRadius: 6, textDecoration: 'none', fontWeight: 600 }}>Account anlegen</Link>
         </div>
@@ -740,6 +832,19 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <Section id="faq">
+        <SectionHead
+          title="Häufig gestellte Fragen"
+          sub="Antworten auf die wichtigsten Fragen zu unseren Implementierungsleistungen."
+        />
+        <div style={{ maxWidth: 780, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {FAQ_PUBLIC.map((item, i) => (
+            <FaqItem key={i} item={item} index={i}/>
+          ))}
+        </div>
+      </Section>
+
       {/* CTA */}
       <section style={{ padding: '72px 24px', textAlign: 'center', background: C.page }}>
         <div style={{ maxWidth: 500, margin: '0 auto' }}>
@@ -761,6 +866,7 @@ export default function LandingPage() {
           <span style={{ color: C.muted, fontSize: 12 }}>© 2025 Dadakaev Labs · Zendesk & Power Automate Implementierungen</span>
           <div style={{ display: 'flex', gap: 20 }}>
             <Link to="/rechner" style={{ color: C.muted, fontSize: 13, textDecoration: 'none' }}>Rechner</Link>
+            <a href="#faq"      style={{ color: C.muted, fontSize: 13, textDecoration: 'none' }}>FAQ</a>
             <Link to="/login"   style={{ color: C.muted, fontSize: 13, textDecoration: 'none' }}>Login</Link>
           </div>
         </div>
