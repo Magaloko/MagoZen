@@ -72,6 +72,88 @@ export const ANFRAGEN = [
     ],
     zeitersparnis: '~7 Min./Anfrage',
     ergebnis: 'Mitarbeiter prüft nur noch Ausnahmen (beschädigte Ware, Sonderfälle)',
+    techDetails: {
+      voraussetzungen: [
+        { was: 'Zendesk Suite', status: 'vorhanden' },
+        { was: 'JTL WAWI 1.9.4 mit REST API', status: 'einrichten' },
+        { was: 'FactBranch (Zendesk ↔ JTL)', status: 'einrichten' },
+        { was: 'n8n auf Hostinger VPS', status: 'einrichten' },
+        { was: 'Anthropic API Key (Claude Haiku)', status: 'einrichten' },
+      ],
+      schritte: [
+        {
+          nr: 1,
+          titel: 'JTL WAWI REST API einrichten',
+          beschreibung: 'Admin → JTL-API → API-Zugänge → Neuen Zugang anlegen. Name: "Zendesk Automatisierung". Berechtigungen: Aufträge lesen ✅, Aufträge schreiben ✅, Kunden lesen ✅. JTL WAWI muss von außen erreichbar sein (feste IP + Portfreigabe oder VPN-Tunnel zum VPS).',
+        },
+        {
+          nr: 2,
+          titel: 'n8n auf Hostinger VPS installieren',
+          beschreibung: 'Node.js 20 + n8n global installieren, PM2 als Service-Manager, Nginx als Reverse Proxy, SSL via Let\'s Encrypt. Ergebnis: n8n erreichbar unter https://n8n.herrundfrauklein.com',
+          code: `# Node.js installieren
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# n8n + PM2 installieren
+npm install n8n -g && npm install pm2 -g
+pm2 start n8n && pm2 save && pm2 startup
+
+# Nginx + SSL
+sudo apt install nginx certbot python3-certbot-nginx
+sudo certbot --nginx -d n8n.herrundfrauklein.com`,
+        },
+        {
+          nr: 3,
+          titel: 'Zendesk Webhook + Trigger einrichten',
+          beschreibung: 'Webhook: Admin Center → Apps und Integrationen → Webhooks. URL: https://n8n.herrundfrauklein.com/webhook/retoure, Methode: POST, Bearer Token Auth. Trigger: Bedingung "Ticket erstellt + Kanal E-Mail" → Webhook aufrufen mit Payload ticket_id, email, subject, body, name.',
+        },
+        {
+          nr: 4,
+          titel: 'n8n Workflow aufbauen (10 Nodes)',
+          beschreibung: 'Webhook → Claude (E-Mail analysieren) → IF Retoure? → JSON parsen → JTL Bestellung abfragen → Frist prüfen (14 Tage) → IF aktiv? → JTL Retoure anlegen → Claude Bestätigung formulieren → Zendesk Antwort senden + Ticket schließen.',
+        },
+      ],
+      n8n_nodes: [
+        { nr: 1, name: 'Webhook', typ: 'Webhook', details: 'Method: POST · Path: /retoure · Bearer Token Auth' },
+        { nr: 2, name: 'Claude: E-Mail analysieren', typ: 'HTTP Request', details: 'POST api.anthropic.com/v1/messages · claude-haiku-4-5 · JSON: ist_retoure, bestellnummer, grund, ton' },
+        { nr: 3, name: 'IF: Ist es eine Retoure?', typ: 'IF', details: 'Prüft ob ist_retoure === true · NEIN → Ticket offen lassen · JA → weiter' },
+        { nr: 4, name: 'JSON parsen', typ: 'Code (JS)', details: 'Bereinigt Markdown-Wrapper aus Claude-Antwort und parsed zu Objekt' },
+        { nr: 5, name: 'JTL: Bestellung abfragen', typ: 'HTTP Request', details: 'GET /api/v1/orders · Query: orderNumber + customerEmail · Bearer JTL API Key' },
+        { nr: 6, name: 'Rückgabefrist prüfen', typ: 'Code (JS)', details: 'Berechnet Tage seit Kauf · frist_aktiv = daysDiff ≤ 14 · Generiert Retourencode RET-{orderId}-{timestamp}' },
+        { nr: 7, name: 'IF: Frist noch aktiv?', typ: 'IF', details: 'JA → Retoure anlegen · NEIN → Kulanzantwort + Ticket an Agent' },
+        { nr: 8, name: 'JTL: Retoure anlegen', typ: 'HTTP Request', details: 'POST /api/v1/returns · orderId + reason + returnCode + items' },
+        { nr: 9, name: 'Claude: Antwort formulieren', typ: 'HTTP Request', details: 'Personalisierte Retourenbestätigung mit Code, Anleitung, 5-Tage-Rückerstattung. Ton: warm, elternfreundlich, max. 150 Wörter.' },
+        { nr: 10, name: 'Zendesk: Antwort senden', typ: 'HTTP Request', details: 'PATCH /api/v2/tickets/{id}.json · public comment · status: solved · tags: retoure, automatisch_bearbeitet' },
+      ],
+      fluss: [
+        'Zendesk Webhook',
+        'Claude: E-Mail analysieren',
+        'Ist es eine Retoure?',
+        ['NEIN → Ticket offen lassen → Ende', 'JA → JSON parsen'],
+        'JTL: Bestellung abfragen',
+        'Frist prüfen (14 Tage)',
+        ['ABGELAUFEN → Kulanzantwort → Agent', 'AKTIV → JTL: Retoure anlegen'],
+        'Claude: Bestätigung formulieren',
+        'Zendesk: Antwort senden + Ticket schließen',
+      ],
+      beispielInput: 'Hallo, ich habe letzte Woche Schuhe für meine Tochter bestellt (Bestellung 45231) aber sie sind leider zu klein. Wie kann ich zurückschicken?',
+      beispielOutput: `Liebe Frau Mustermann,
+
+vielen Dank für Ihre Nachricht. Selbstverständlich helfen wir Ihnen gerne bei der Rücksendung der Kinderschuhe Modell X.
+
+Ihr persönlicher Retourencode lautet: RET-45231-1741862400
+
+Bitte schreiben Sie diesen Code gut sichtbar auf das Paket und senden Sie es an unsere Adresse zurück. Sobald das Paket bei uns eintrifft, erhalten Sie Ihre Rückerstattung von €49,90 innerhalb von 5 Werktagen.
+
+Falls Sie eine andere Größe wünschen, stehen wir Ihnen gerne zur Verfügung.
+
+Herzliche Grüße, Ihr Team von Herr und Frau Klein`,
+      naechsteSchritte: {
+        heute: ['JTL WAWI API-Zugang anlegen', 'Anthropic API Key erstellen (console.anthropic.com)', 'Hostinger VPS aufsetzen'],
+        woche: ['n8n installieren und erreichbar machen', 'Zendesk Webhook + Trigger einrichten', 'n8n Workflow Node für Node aufbauen'],
+        testen: ['5 Test-E-Mails mit verschiedenen Szenarien', 'Retourencode landet in JTL WAWI ✅', 'Antwort kommt in unter 10 Sekunden ✅', 'Abgelaufene Frist wird korrekt erkannt ✅'],
+      },
+    },
   },
   {
     id: 'groesse',
@@ -197,6 +279,26 @@ export const IMPLEMENTIERUNGS_TIMELINE = [
     anfragenIds: ['groesse'],
     beschreibung: 'AI Copilot + Help Center RAG → KI antwortet auf Produktfragen und Größenberatung',
   },
+]
+
+export const GRUNDPRINZIP = 'Wir automatisieren nicht alles auf einmal. Wir fangen mit dem an, was täglich am meisten Zeit kostet — und was technisch am einfachsten umzusetzen ist. Dann bauen wir Schicht für Schicht drauf.'
+
+export const STACK_TOOLS = [
+  { tool: 'Zendesk Suite', rolle: 'Alle eingehenden E-Mails, Ticketverwaltung, Agenten-Interface', status: 'vorhanden' },
+  { tool: 'FactBranch', rolle: 'Verbindet Zendesk mit JTL — Bestelldaten direkt im Ticket sichtbar', status: 'einrichten' },
+  { tool: 'JTL WAWI 1.9.4', rolle: 'Warenwirtschaft, Lagerbestand, Bestellstatus, Retouren', status: 'vorhanden' },
+  { tool: 'JTL Shop 5.4.2', rolle: 'Produktdaten, Verfügbarkeit, Preise', status: 'vorhanden' },
+  { tool: 'Claude Haiku', rolle: 'KI-Gehirn — liest, versteht, kategorisiert, formuliert', status: 'einrichten' },
+  { tool: 'n8n (self-hosted)', rolle: 'Automatisierungslogik — verbindet alles miteinander', status: 'einrichten' },
+  { tool: 'Hostinger VPS', rolle: 'Hosting für n8n — DSGVO-konform, volle Kontrolle', status: 'einrichten' },
+]
+
+export const MITARBEITER_TASKS = [
+  { icon: '🤝', text: 'Komplexe Reklamationen mit Fingerspitzengefühl lösen' },
+  { icon: '⭐', text: 'Großkunden und Wiederholungskäufer persönlich betreuen' },
+  { icon: '💬', text: 'WhatsApp und Chat betreuen — wenn das kommt' },
+  { icon: '🔍', text: 'Qualitätskontrolle der KI-Antworten' },
+  { icon: '📦', text: 'Produktberatung bei wirklich komplexen Anfragen' },
 ]
 
 export const ZEITERSPARNIS_GESAMT = {

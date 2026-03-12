@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
-import { ANFRAGEN, IMPLEMENTIERUNGS_TIMELINE, KPIS_AUTO } from '../data/automatisierungData'
+import { ANFRAGEN, IMPLEMENTIERUNGS_TIMELINE, KPIS_AUTO, GRUNDPRINZIP, STACK_TOOLS, MITARBEITER_TASKS } from '../data/automatisierungData'
 
 const GRAD_COLOR = {
   voll: 'var(--green)',
@@ -17,6 +17,188 @@ const GRAD_BORDER = {
   voll: 'var(--green-b)',
   teilauto: 'rgba(180,130,58,0.35)',
   halb: 'rgba(180,130,58,0.35)',
+}
+
+function GrundprinzipBanner() {
+  return (
+    <div style={{ marginBottom: 20, padding: '12px 16px', background: 'var(--ink-m)', border: '1px solid var(--border)', borderLeft: '3px solid var(--amber)', borderRadius: 'var(--r)', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>⚡</span>
+      <div>
+        <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--amber)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>Grundprinzip</div>
+        <div style={{ fontSize: 13, color: 'var(--muted-l)', lineHeight: 1.7 }}>{GRUNDPRINZIP}</div>
+      </div>
+    </div>
+  )
+}
+
+function StackTable() {
+  return (
+    <div style={{ background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 'var(--r)', marginBottom: 20, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 14 }}>🔧</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em' }}>Der Stack</span>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ background: 'var(--ink)' }}>
+            <th style={{ padding: '8px 18px', textAlign: 'left', fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>Tool</th>
+            <th style={{ padding: '8px 18px', textAlign: 'left', fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>Rolle</th>
+            <th style={{ padding: '8px 18px', textAlign: 'center', fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {STACK_TOOLS.map((row, i) => (
+            <tr key={row.tool} style={{ borderTop: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--ink)04' }}>
+              <td style={{ padding: '9px 18px', fontSize: 12, fontWeight: 600, color: 'var(--white)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>{row.tool}</td>
+              <td style={{ padding: '9px 18px', fontSize: 12, color: 'var(--muted-l)', lineHeight: 1.4 }}>{row.rolle}</td>
+              <td style={{ padding: '9px 18px', textAlign: 'center' }}>
+                {row.status === 'vorhanden' ? (
+                  <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-d)', border: '1px solid var(--green-b)', color: 'var(--green)' }}>✅ vorhanden</span>
+                ) : (
+                  <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'rgba(180,130,58,0.10)', border: '1px solid rgba(180,130,58,0.3)', color: 'var(--amber)' }}>🔧 einrichten</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function MitarbeiterSection() {
+  return (
+    <div style={{ background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '16px 20px', marginTop: 24 }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 14 }}>
+        Was die 6 Mitarbeiter danach machen
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 8 }}>
+        {MITARBEITER_TASKS.map((task, i) => (
+          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 12px', background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 8 }}>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>{task.icon}</span>
+            <span style={{ fontSize: 12, color: 'var(--muted-l)', lineHeight: 1.5 }}>{task.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TechDetailPanel({ techDetails }) {
+  const [open, setOpen] = useState(false)
+  const [activeStep, setActiveStep] = useState(null)
+
+  if (!techDetails) return null
+
+  return (
+    <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{ background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, padding: '7px 14px', fontSize: 12, color: 'var(--amber)', cursor: 'pointer', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 6 }}
+      >
+        🔧 {open ? '▲ Technischen Plan schließen' : '▼ Technischer Umsetzungsplan (n8n)'}
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 14 }}>
+          {/* Voraussetzungen */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Voraussetzungen</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {techDetails.voraussetzungen.map((v) => (
+                <span key={v.was} style={{ fontSize: 11, fontFamily: 'var(--font-mono)', padding: '3px 10px', borderRadius: 4, background: v.status === 'vorhanden' ? 'var(--green-d)' : 'rgba(180,130,58,0.10)', border: `1px solid ${v.status === 'vorhanden' ? 'var(--green-b)' : 'rgba(180,130,58,0.3)'}`, color: v.status === 'vorhanden' ? 'var(--green)' : 'var(--amber)' }}>
+                  {v.status === 'vorhanden' ? '✅' : '🔧'} {v.was}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Setup Schritte */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Setup-Schritte</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {techDetails.schritte.map((s) => (
+                <div key={s.nr} style={{ background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setActiveStep(activeStep === s.nr ? null : s.nr)}
+                    style={{ width: '100%', background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--amber)', background: 'rgba(180,130,58,0.15)', border: '1px solid rgba(180,130,58,0.3)', borderRadius: 4, padding: '1px 7px', flexShrink: 0 }}>Schritt {s.nr}</span>
+                    <span style={{ fontSize: 12, color: 'var(--white)', fontWeight: 600 }}>{s.titel}</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{activeStep === s.nr ? '▲' : '▼'}</span>
+                  </button>
+                  {activeStep === s.nr && (
+                    <div style={{ padding: '0 14px 12px', borderTop: '1px solid var(--border)' }}>
+                      <p style={{ fontSize: 12, color: 'var(--muted-l)', lineHeight: 1.7, margin: '10px 0 0' }}>{s.beschreibung}</p>
+                      {s.code && (
+                        <pre style={{ marginTop: 10, padding: '10px 12px', background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 11, color: 'var(--green)', fontFamily: 'var(--font-mono)', overflowX: 'auto', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                          {s.code}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* n8n Nodes */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>n8n Workflow — 10 Nodes</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {techDetails.n8n_nodes.map((node) => (
+                <div key={node.nr} style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto', gap: 10, alignItems: 'center', padding: '7px 12px', background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)', textAlign: 'center' }}>{node.nr}</span>
+                  <div>
+                    <span style={{ fontSize: 12, color: 'var(--white)', fontWeight: 600 }}>{node.name}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted-l)', marginLeft: 8 }}>{node.details}</span>
+                  </div>
+                  <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', padding: '2px 7px', borderRadius: 4, background: 'var(--ink-m)', border: '1px solid var(--border)', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{node.typ}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Beispiel-E-Mail */}
+          <div style={{ marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6 }}>Kunden-E-Mail (Eingang)</div>
+              <div style={{ padding: '10px 12px', background: 'rgba(220,60,60,0.05)', border: '1px solid rgba(220,60,60,0.2)', borderRadius: 8, fontSize: 12, color: 'var(--muted-l)', fontStyle: 'italic', lineHeight: 1.6 }}>
+                {techDetails.beispielInput}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6 }}>Automatische Antwort — nach ~8 Sek.</div>
+              <div style={{ padding: '10px 12px', background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 8, fontSize: 12, color: 'var(--muted-l)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+                {techDetails.beispielOutput}
+              </div>
+            </div>
+          </div>
+
+          {/* Nächste Schritte */}
+          <div>
+            <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Nächste Schritte</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              {[
+                { label: 'Heute', items: techDetails.naechsteSchritte.heute, color: 'var(--amber)' },
+                { label: 'Diese Woche', items: techDetails.naechsteSchritte.woche, color: 'var(--blue)' },
+                { label: 'Testen', items: techDetails.naechsteSchritte.testen, color: 'var(--green)' },
+              ].map(({ label, items, color }) => (
+                <div key={label} style={{ padding: '10px 12px', background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                  <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>{label}</div>
+                  {items.map((item, i) => (
+                    <div key={i} style={{ fontSize: 11, color: 'var(--muted-l)', lineHeight: 1.5, display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 4 }}>
+                      <span style={{ color, flexShrink: 0, marginTop: 1 }}>→</span> {item}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 function WorkflowArrow({ steps, color, label }) {
@@ -109,6 +291,9 @@ function AnfrageCard({ anfrage }) {
           <div style={{ marginTop: 12, padding: '10px 14px', background: `${color}10`, border: `1px solid ${color}33`, borderRadius: 6, fontSize: 12, color }}>
             <strong>Ergebnis:</strong> {anfrage.ergebnis}
           </div>
+
+          {/* Technischer Umsetzungsplan (nur wenn vorhanden) */}
+          <TechDetailPanel techDetails={anfrage.techDetails} />
         </div>
       )}
     </div>
@@ -143,6 +328,10 @@ export default function AutomatisierungPage() {
           </Link>
         </div>
       </div>
+
+      {/* Grundprinzip + Stack */}
+      <GrundprinzipBanner />
+      <StackTable />
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10, marginBottom: 24 }}>
@@ -189,6 +378,9 @@ export default function AutomatisierungPage() {
           <AnfrageCard key={anfrage.id} anfrage={anfrage} />
         ))}
       </div>
+
+      {/* Was die Mitarbeiter danach machen */}
+      <MitarbeiterSection />
 
       {/* Summary */}
       <div style={{ marginTop: 24, background: 'var(--green-d)', border: '1px solid var(--green-b)', borderRadius: 'var(--r)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
