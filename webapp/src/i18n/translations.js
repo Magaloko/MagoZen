@@ -45,6 +45,8 @@ export const TRANSLATIONS = {
     'nav.faq': 'FAQ',
     'nav.intern': 'Kalkulation',
     'nav.angebot': 'Angebot',
+    'nav.automatisierung': 'Automatisierungsplan',
+    'nav.wissen': 'Wissen & Strategie',
     'sidebar.footer.version': 'v1.0 · März 2025',
     'sidebar.footer.confidential': 'Intern · Vertraulich',
 
@@ -60,6 +62,8 @@ export const TRANSLATIONS = {
     'title.faq': 'Q&A Vorbereitung',
     'title.intern': 'Intern – Kalkulation',
     'title.angebot': 'Angebot erstellen',
+    'title.automatisierung': 'Automatisierungsplan HFK',
+    'title.wissen': 'Wissen & Strategie',
     'topbar.project': 'Projekt: HFK Zendesk+JTL+Copilot',
 
     // ── Dashboard ────────────────────────────────────────────────────────────
@@ -271,6 +275,8 @@ export const TRANSLATIONS = {
     'nav.faq': 'FAQ',
     'nav.intern': 'Calculation',
     'nav.angebot': 'Quote',
+    'nav.automatisierung': 'Automation Plan',
+    'nav.wissen': 'Knowledge',
     'sidebar.footer.version': 'v1.0 · March 2025',
     'sidebar.footer.confidential': 'Internal · Confidential',
 
@@ -285,6 +291,8 @@ export const TRANSLATIONS = {
     'title.faq': 'Q&A Preparation',
     'title.intern': 'Internal – Calculation',
     'title.angebot': 'Create Quote',
+    'title.automatisierung': 'Automation Plan HFK',
+    'title.wissen': 'Knowledge & Strategy',
     'topbar.project': 'Project: HFK Zendesk+JTL+Copilot',
 
     'dashboard.overall': 'Overall Progress',
@@ -485,6 +493,8 @@ export const TRANSLATIONS = {
     'nav.faq': 'FAQ',
     'nav.intern': 'Расчёт',
     'nav.angebot': 'Предложение',
+    'nav.automatisierung': 'План автоматизации',
+    'nav.wissen': 'Знания',
     'sidebar.footer.version': 'v1.0 · март 2025',
     'sidebar.footer.confidential': 'Внутренний · Конфиденциально',
 
@@ -499,6 +509,8 @@ export const TRANSLATIONS = {
     'title.faq': 'Подготовка Q&A',
     'title.intern': 'Внутренний расчёт',
     'title.angebot': 'Создать предложение',
+    'title.automatisierung': 'План автоматизации HFK',
+    'title.wissen': 'Знания и стратегия',
     'topbar.project': 'Проект: HFK Zendesk+JTL+Copilot',
 
     'dashboard.overall': 'Общий прогресс',

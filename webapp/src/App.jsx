@@ -21,6 +21,8 @@ import InternPage from './pages/InternPage'
 import FragenPage from './pages/FragenPage'
 import DemoPage from './pages/DemoPage'
 import AngebotPage from './pages/AngebotPage'
+import WissenPage from './pages/WissenPage'
+import AutomatisierungPage from './pages/AutomatisierungPage'
 import ProjectSettingsPage from './pages/ProjectSettingsPage'
 import UserManagementPage from './pages/UserManagementPage'
 import RechnerPage from './pages/RechnerPage'
@@ -103,6 +105,8 @@ export default function App() {
                 <Route element={<ProtectedRoute requireAdmin />}>
                   <Route path="projects/:projectId/intern" element={<InternPage />} />
                   <Route path="projects/:projectId/angebot" element={<AngebotPage />} />
+                  <Route path="projects/:projectId/automatisierung" element={<AutomatisierungPage />} />
+                  <Route path="projects/:projectId/wissen" element={<WissenPage />} />
                   <Route path="projects/:projectId/settings" element={<ProjectSettingsPage />} />
                 </Route>
               </Route>

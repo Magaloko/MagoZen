@@ -16,9 +16,11 @@ const SEGMENT_TITLE = {
   'kunde':     'title.customer',
   'fragen':    'title.questions',
   'faq':       'title.faq',
-  'intern':    'title.intern',
-  'demo':      'title.demo',
-  'angebot':   'title.angebot',
+  'intern':          'title.intern',
+  'demo':            'title.demo',
+  'angebot':         'title.angebot',
+  'automatisierung': 'title.automatisierung',
+  'wissen':          'title.wissen',
 }
 
 export default function AppLayout() {

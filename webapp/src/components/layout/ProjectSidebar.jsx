@@ -46,6 +46,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+    id: 'strategie',
+    label: 'STRATEGIE',
+    adminOnly: true,
+    defaultOpen: true,
+    items: [
+      { seg: 'automatisierung', key: 'nav.automatisierung', icon: '⚙', adminOnly: true },
+      { seg: 'wissen', key: 'nav.wissen', icon: '○', adminOnly: true },
+    ],
+  },
+  {
     id: 'admin',
     label: 'INTERN',
     adminOnly: true,
