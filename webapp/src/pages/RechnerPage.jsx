@@ -218,12 +218,15 @@ function FeatureGrid({ selected, onChange, options, token }) {
 
 // ── Result Card ────────────────────────────────────────────────────────────────
 function ResultCard({ plan, plans, mainCount, subCount, isPA, token }) {
-  const planIdx   = plans.findIndex((p) => p.id === plan.id)
-  const isProcess = isPA && plan.unit === 'process'
-  const unitLabel = isProcess ? 'Prozess' : isPA ? 'User' : 'Agent'
-  const count     = isProcess ? subCount : mainCount
-  const monthly   = plan.price * count
-  const yearly    = Math.round(monthly * 12 * 0.8)
+  const planIdx      = plans.findIndex((p) => p.id === plan.id)
+  const isProcess    = isPA && plan.unit === 'process'
+  const unitLabel    = isProcess ? 'Prozess' : isPA ? 'User' : 'Agent'
+  const count        = isProcess ? subCount : mainCount
+  const monthly      = plan.price * count
+  const yearly       = Math.round(monthly * 12 * 0.8)
+  // Zendesk only: lightAgents = subCount, show savings
+  const lightAgents  = !isPA ? subCount : 0
+  const savedMonthly = !isPA ? plan.price * lightAgents : 0
 
   return (
     <div style={{
@@ -321,6 +324,20 @@ function ResultCard({ plan, plans, mainCount, subCount, isPA, token }) {
                 €{yearly.toLocaleString('de')} / Jahr
               </strong>
             </div>
+            {savedMonthly > 0 && (
+              <div style={{
+                marginTop: 8, padding: '10px 14px',
+                background: 'rgba(34,197,94,0.07)',
+                border: '1px solid rgba(34,197,94,0.2)',
+                borderRadius: 8, fontSize: 12, color: MUTED,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span>Ersparnis durch {lightAgents} Light Agent{lightAgents !== 1 ? 'en' : ''} (kostenlos)</span>
+                <strong style={{ color: '#16A34A', fontFamily: 'var(--font-mono)', fontSize: 14 }}>
+                  −€{savedMonthly.toLocaleString('de')} / Mo.
+                </strong>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -402,11 +419,16 @@ function ResultCard({ plan, plans, mainCount, subCount, isPA, token }) {
 
 // ── Zendesk Calculator ─────────────────────────────────────────────────────────
 function ZendeskRechner() {
-  const [agents,   setAgents]   = useState(4)
-  const [tickets,  setTickets]  = useState(60)
-  const [features, setFeatures] = useState([])
+  const [agents,      setAgents]      = useState(6)
+  const [fullAgents,  setFullAgentsRaw] = useState(4)
+  const [tickets,     setTickets]     = useState(60)
+  const [features,    setFeatures]    = useState([])
 
-  const plan = useMemo(() => zdRecommend({ agents, tickets, features }), [agents, tickets, features])
+  // Full agents cannot exceed total agents
+  const setFullAgents = (v) => setFullAgentsRaw(Math.min(v, agents))
+  const lightAgents = Math.max(0, agents - fullAgents)
+
+  const plan = useMemo(() => zdRecommend({ agents: fullAgents, tickets, features }), [fullAgents, tickets, features])
 
   return (
     <div style={{
@@ -416,17 +438,54 @@ function ZendeskRechner() {
       {/* Questions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
-        {/* Agents */}
+        {/* Agents split */}
         <div style={{
           background: SURFACE, border: `1px solid ${BORDER}`,
           borderRadius: 10, padding: '20px 22px',
         }}>
-          <Label>Anzahl Support-Mitarbeiter</Label>
+          <Label>Mitarbeiter mit Zugang zu Zendesk</Label>
           <Stepper
-            value={agents} onChange={setAgents}
+            value={agents}
+            onChange={(v) => { setAgents(v); setFullAgentsRaw(f => Math.min(f, v)) }}
             min={1} max={100} accent={ZD.accent}
-            presets={[1, 2, 3, 5, 8, 12, 20]}
+            presets={[1, 2, 3, 5, 6, 8, 12, 20]}
           />
+
+          {/* Full vs Light split */}
+          <div style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${BORDER}` }}>
+            <Label>Davon antworten direkt an Kunden (Full Agent)</Label>
+            <Stepper
+              value={fullAgents} onChange={setFullAgents}
+              min={1} max={agents} accent={ZD.accent}
+              presets={[1, 2, 3, 4, 5, 6].filter(p => p <= agents)}
+            />
+            <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
+              <div style={{
+                flex: 1, padding: '10px 14px', borderRadius: 8,
+                background: ZD.bg, border: `1px solid ${ZD.border}`,
+              }}>
+                <div style={{ fontSize: 11, color: ZD.accent, fontWeight: 700, marginBottom: 3 }}>
+                  Full Agents · {fullAgents}
+                </div>
+                <div style={{ fontSize: 12, color: MUTED }}>
+                  Antworten, Tickets lösen, alle Funktionen · lizenzpflichtig
+                </div>
+              </div>
+              {lightAgents > 0 && (
+                <div style={{
+                  flex: 1, padding: '10px 14px', borderRadius: 8,
+                  background: 'rgba(34,197,94,0.06)', border: `1px solid rgba(34,197,94,0.2)`,
+                }}>
+                  <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700, marginBottom: 3 }}>
+                    Light Agents · {lightAgents} · kostenlos
+                  </div>
+                  <div style={{ fontSize: 12, color: MUTED }}>
+                    Mitlesen + interne Notizen — ideal für GF, Lager, Einkauf
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Ticket Volume */}
@@ -465,7 +524,7 @@ function ZendeskRechner() {
       {/* Result */}
       <ResultCard
         plan={plan} plans={ZD_PLANS}
-        mainCount={agents} subCount={0}
+        mainCount={fullAgents} subCount={lightAgents}
         isPA={false} token={ZD}
       />
     </div>
