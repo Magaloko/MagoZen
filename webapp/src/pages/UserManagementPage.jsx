@@ -4,6 +4,85 @@ import { useProjects } from '../context/ProjectContext'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 
+function generateToken() {
+  return crypto.randomUUID()
+}
+
+function InviteModal({ project, onClose }) {
+  const [email, setEmail]     = useState('')
+  const [link, setLink]       = useState('')
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied]   = useState(false)
+
+  const create = async () => {
+    setLoading(true)
+    const token = generateToken()
+    const { error } = await supabase
+      .from('project_members')
+      .insert([{ project_id: project.id, invite_token: token, invite_email: email || null, visible_pages: [] }])
+    if (!error) {
+      setLink(`${window.location.origin}/register?token=${token}`)
+    }
+    setLoading(false)
+  }
+
+  const copy = () => {
+    navigator.clipboard.writeText(link)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
+      <div style={{ background: 'var(--ink-m)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 480 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Einladungslink</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--white)', marginBottom: 20 }}>
+          Projekt: {project.short_name || project.name}
+        </div>
+
+        {!link ? (
+          <>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12, color: 'var(--muted-l)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
+                E-Mail (optional — wird im Formular vorausgefüllt)
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="kunde@firma.de"
+                style={{ width: '100%', padding: '9px 12px', fontSize: 13, background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--white-d)', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--muted-l)', cursor: 'pointer', fontSize: 13 }}>Abbrechen</button>
+              <button onClick={create} disabled={loading} style={{ padding: '8px 16px', background: 'var(--green)', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                {loading ? 'Erstelle...' : 'Link generieren'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: 'var(--muted-l)', marginBottom: 12 }}>
+              Schicken Sie diesen Link an den Kunden. Er ist einmalig nutzbar.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+              <input readOnly value={link} style={{ flex: 1, padding: '9px 12px', fontSize: 11, background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--muted-l)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+              <button onClick={copy} style={{ padding: '8px 14px', background: copied ? 'rgba(63,207,142,.15)' : 'var(--ink)', border: `1px solid ${copied ? 'var(--green-b)' : 'var(--border)'}`, borderRadius: 6, color: copied ? 'var(--green)' : 'var(--muted-l)', cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap', transition: 'all .15s' }}>
+                {copied ? '✓ Kopiert' : 'Kopieren'}
+              </button>
+            </div>
+            <div style={{ padding: '10px 12px', background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.15)', borderRadius: 6, fontSize: 12, color: 'var(--amber)', marginBottom: 20 }}>
+              Seiten-Zugriff wird nach der Registrierung in dieser Übersicht konfiguriert.
+            </div>
+            <button onClick={onClose} style={{ width: '100%', padding: '9px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--muted-l)', cursor: 'pointer', fontSize: 13 }}>Schließen</button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const TOGGLEABLE_PAGES = [
   { seg: 'phasen',    label: 'Phasen',         icon: '◈' },
   { seg: 'checkliste',label: 'Go-Live Check',   icon: '✓' },
@@ -30,6 +109,7 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
   const [saving, setSaving]   = useState(false)
+  const [inviteProject, setInviteProject] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -98,6 +178,8 @@ export default function UserManagementPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+      {inviteProject && <InviteModal project={inviteProject} onClose={() => setInviteProject(null)} />}
 
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
@@ -243,6 +325,14 @@ export default function UserManagementPage() {
                                 </div>
                                 {assigned && (
                                   <Badge color="green">Aktiv</Badge>
+                                )}
+                                {!assigned && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setInviteProject(project) }}
+                                    style={{ ...ghostBtn, borderColor: 'rgba(63,207,142,.25)', color: 'var(--green)', fontSize: 10 }}
+                                  >
+                                    + Einladungslink
+                                  </button>
                                 )}
                               </div>
 

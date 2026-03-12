@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -9,7 +9,6 @@ export function AuthProvider({ children }) {
   const [membership, setMembership] = useState(null)
   const [loading, setLoading] = useState(true)
   const [authReady, setAuthReady] = useState(false)
-  const loadingRef = useRef(false)
 
   const fetchProfile = useCallback(async (authUser) => {
     try {
@@ -17,21 +16,16 @@ export function AuthProvider({ children }) {
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
-        .single()
+        .maybeSingle()
 
       if (data) {
         console.log('[Auth] Profile found:', data.role)
         return data
       }
 
-      // Profile doesn't exist — try to create it
+      // Profile doesn't exist — create it with role 'customer'
+      // (admin role must be explicitly granted via UserManagement)
       console.warn('[Auth] No profile found, creating...', error?.message)
-
-      const { count } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-
-      const newRole = (count === 0 || count === null) ? 'admin' : 'customer'
       const displayName = authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User'
 
       const { data: created, error: insertErr } = await supabase
@@ -39,7 +33,7 @@ export function AuthProvider({ children }) {
         .upsert({
           id: authUser.id,
           email: authUser.email,
-          role: newRole,
+          role: 'customer',
           display_name: displayName,
         })
         .select()
@@ -47,11 +41,11 @@ export function AuthProvider({ children }) {
 
       if (insertErr) {
         console.error('[Auth] Insert profile failed:', insertErr.message)
-        // Return a fallback local profile so the app doesn't hang
+        // Fallback — never grant admin, show loading state to avoid leaking access
         return {
           id: authUser.id,
           email: authUser.email,
-          role: 'admin',
+          role: 'customer',
           display_name: displayName,
           _local: true,
         }
@@ -60,11 +54,10 @@ export function AuthProvider({ children }) {
       return created
     } catch (err) {
       console.error('[Auth] fetchProfile crash:', err)
-      // Fallback so app doesn't freeze
       return {
         id: authUser.id,
         email: authUser.email,
-        role: 'admin',
+        role: 'customer',
         display_name: authUser.email?.split('@')[0] || 'User',
         _local: true,
       }
@@ -78,7 +71,7 @@ export function AuthProvider({ children }) {
         .select('*')
         .eq('user_id', userId)
         .not('accepted_at', 'is', null)
-        .single()
+        .maybeSingle()
       return data
     } catch {
       return null
@@ -86,16 +79,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   const loadUserData = useCallback(async (authUser) => {
-    if (loadingRef.current) return // prevent double-loading
-    loadingRef.current = true
-
     if (!authUser) {
       setUser(null)
       setProfile(null)
       setMembership(null)
       setLoading(false)
       setAuthReady(true)
-      loadingRef.current = false
       return
     }
 
@@ -115,23 +104,16 @@ export function AuthProvider({ children }) {
     console.log('[Auth] Ready:', authUser.email, '→', prof?.role)
     setLoading(false)
     setAuthReady(true)
-    loadingRef.current = false
   }, [fetchProfile, fetchMembership])
 
   useEffect(() => {
     let mounted = true
 
-    // 1. Check existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) loadUserData(session?.user || null)
-    })
-
-    // 2. Listen for auth changes (login, logout, token refresh)
+    // Use onAuthStateChange exclusively — it fires INITIAL_SESSION on mount,
+    // which covers the initial session check (no need for separate getSession call).
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[Auth] Event:', event)
       if (!mounted) return
-      // Reset loading ref so new events can trigger loading
-      loadingRef.current = false
       loadUserData(session?.user || null)
     })
 
