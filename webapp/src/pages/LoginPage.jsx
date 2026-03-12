@@ -58,6 +58,9 @@ export default function LoginPage() {
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <Link to="/" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 16, fontFamily: 'var(--font-mono)' }}>
+            ← Zur Hauptseite
+          </Link>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--green)', marginBottom: 6 }}>
             DADAKAEV_LABS
           </div>
