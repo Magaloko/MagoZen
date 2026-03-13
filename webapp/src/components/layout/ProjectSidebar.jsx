@@ -345,6 +345,10 @@ export default function ProjectSidebar({ projectId, isOpen, onClose }) {
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>◎</span>
               Benutzer
             </NavLink>
+            <NavLink to="/settings" onClick={onClose} style={({ isActive }) => ({ ...navStyle(isActive), padding: '9px 12px' })}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }}>⚙</span>
+              {t('nav.settings')}
+            </NavLink>
 
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.1em', padding: '10px 12px 4px', marginTop: 4 }}>
               {t('nav.projects')}

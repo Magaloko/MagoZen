@@ -21,6 +21,8 @@ const SEGMENT_TITLE = {
   'angebot':         'title.angebot',
   'automatisierung': 'title.automatisierung',
   'wissen':          'title.wissen',
+  'settings':        'title.settings',
+  'users':           'title.users',
 }
 
 export default function AppLayout() {
@@ -45,6 +47,10 @@ export default function AppLayout() {
     titleKey = 'title.home'
   } else if (parts[0] === 'general') {
     titleKey = 'title.general'
+  } else if (parts[0] === 'settings') {
+    titleKey = 'title.settings'
+  } else if (parts[0] === 'users') {
+    titleKey = 'title.users'
   } else if (parts[0] === 'projects' && parts[1] === 'new') {
     titleKey = 'title.newProject'
   } else if (parts[0] === 'projects' && parts[2]) {

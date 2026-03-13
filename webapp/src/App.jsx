@@ -24,6 +24,7 @@ import AngebotPage from './pages/AngebotPage'
 import WissenPage from './pages/WissenPage'
 import AutomatisierungPage from './pages/AutomatisierungPage'
 import ProjectSettingsPage from './pages/ProjectSettingsPage'
+import AppSettingsPage from './pages/AppSettingsPage'
 import UserManagementPage from './pages/UserManagementPage'
 import RechnerPage from './pages/RechnerPage'
 
@@ -85,6 +86,7 @@ export default function App() {
                 <Route element={<ProtectedRoute requireAdmin />}>
                   <Route path="home" element={<HomePage />} />
                   <Route path="general" element={<GeneralPage />} />
+                  <Route path="settings" element={<AppSettingsPage />} />
                   <Route path="projects/new" element={<NewProjectWizard />} />
                   <Route path="users" element={<UserManagementPage />} />
                 </Route>
